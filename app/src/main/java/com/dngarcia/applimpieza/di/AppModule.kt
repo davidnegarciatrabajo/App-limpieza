@@ -6,6 +6,8 @@ import com.dngarcia.tareasdiarias.data.repository.TareaRepositoryImpl
 import com.dngarcia.tareasdiarias.domain.repository.CategoriaRepository
 import com.dngarcia.tareasdiarias.domain.repository.EjecucionRepository
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
+import com.dngarcia.tareasdiarias.data.reminder.WorkManagerTaskReminderScheduler
+import com.dngarcia.tareasdiarias.domain.repository.TaskReminderScheduler
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -26,4 +28,8 @@ abstract class AppModule {
     @Binds
     @Singleton
     abstract fun bindEjecucionRepository(impl: EjecucionRepositoryImpl): EjecucionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTaskReminderScheduler(impl: WorkManagerTaskReminderScheduler): TaskReminderScheduler
 }

@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">Tareas Diarias</string>
+    <string name="home_title">Inicio</string>
+    <string name="home_card_tasks">Tareas</string>
+    <string name="home_card_categories">Categorias</string>
+    <string name="home_card_today">Today</string>
+    <string name="today_title">Today</string>
+    <string name="today_back_home">Volver a Inicio</string>
+    <string name="today_task_one">Tomar agua</string>
+    <string name="today_task_two">Ordenar escritorio</string>
+    <string name="today_task_three">Leer 20 minutos</string>
+    <string name="placeholder_coming_soon">Proximamente</string>
+    <string name="checkbox_task_description">Marcar tarea completada</string>
+    <string name="reminder_channel_name">Recordatorios de tareas</string>
+    <string name="reminder_channel_description">Notificaciones para tareas programadas</string>
+    <string name="reminder_notification_title">Recordatorio</string>
+    <string name="reminder_notification_message">Es momento de: %1$s</string>
 </resources>

@@ -1,4 +1,4 @@
-package com.dngarcia.applimpieza.ui.theme
+package com.dngarcia.tareasdiarias.ui.theme
 
 import android.app.Activity
 import android.os.Build

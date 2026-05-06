@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "App Limpieza"
+rootProject.name = "Tareas Diarias"
 include(":app")

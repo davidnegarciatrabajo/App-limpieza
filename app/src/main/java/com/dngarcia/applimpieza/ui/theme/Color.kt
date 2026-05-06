@@ -1,4 +1,4 @@
-package com.dngarcia.applimpieza.ui.theme
+package com.dngarcia.tareasdiarias.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,4 +1,4 @@
-package com.dngarcia.applimpieza
+package com.dngarcia.tareasdiarias
 
 import org.junit.Test
 

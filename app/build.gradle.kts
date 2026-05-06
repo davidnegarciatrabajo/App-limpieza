@@ -1,10 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.hilt.android)
 }
 
 android {
-    namespace = "com.dngarcia.applimpieza"
+    namespace = "com.dngarcia.tareasdiarias"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +14,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.dngarcia.applimpieza"
+        applicationId = "com.dngarcia.tareasdiarias"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -48,6 +50,13 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.hilt.android)
+    ksp(libs.androidx.room.compiler)
+    ksp(libs.hilt.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
@@ -55,4 +64,10 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.incremental", "true")
+    arg("room.expandProjection", "true")
 }

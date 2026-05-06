@@ -1,0 +1,65 @@
+# Reglas generales del proyecto: Tareas Diarias
+
+## Idioma
+- Comentarios y documentacion: espanol.
+- Codigo (nombres de clases, funciones, variables): ingles siguiendo convenciones Kotlin.
+
+## Convenciones Kotlin
+- Usar estilo Kotlin oficial.
+- Indentacion de 4 espacios.
+- Longitud maxima sugerida: 120 caracteres por linea.
+- Nombres:
+  - Clases/objetos: PascalCase.
+  - Funciones/variables: camelCase.
+  - Constantes: UPPER_SNAKE_CASE.
+- Evitar funciones grandes; extraer logica reutilizable.
+
+## Reglas de arquitectura
+- Arquitectura base: MVVM + Clean Architecture.
+- Capas:
+  - `presentation`: UI Compose, estados de pantalla, ViewModels.
+  - `domain`: modelos de dominio, contratos de repositorio, casos de uso.
+  - `data`: Room, DAOs, entidades, implementaciones de repositorio.
+- Restricciones:
+  - `presentation` no accede directo a Room/DAO.
+  - `domain` no depende de Android framework.
+  - `data` no importa `presentation`.
+
+## Compose
+- No mezclar Compose con XML en nuevas pantallas.
+- Toda pantalla nueva debe tener:
+  - `Screen` composable principal.
+  - `UiState` claro.
+  - Preview basico cuando aplique.
+- `Modifier` debe ser el ultimo parametro opcional en composables reutilizables.
+
+## Errores y logs
+- No silenciar excepciones.
+- Manejar errores de dominio de forma explicita (resultado tipado, sealed class o equivalente).
+- Logs solo para diagnostico; no loggear datos sensibles del usuario.
+
+## Commits
+- Usar Conventional Commits:
+  - `feat:`
+  - `fix:`
+  - `refactor:`
+  - `test:`
+  - `docs:`
+  - `chore:`
+- Mensajes claros y orientados al cambio funcional.
+
+## Testing obligatorio
+- Casos de uso (domain): test unitario.
+- DAOs y consultas criticas: tests instrumentados o de integracion local segun corresponda.
+- Pantallas Compose clave: al menos un test UI de flujo principal.
+
+## Restricciones tecnicas
+- No usar librerias deprecadas.
+- No hardcodear strings visibles al usuario; usar `strings.xml`.
+- Evitar estado mutable global.
+- Mantener compatibilidad con `minSdk 26`.
+
+## Flujo de trabajo de agentes
+- Agentes especializados viven en `.cursor/rules/*.mdc`.
+- Skills especializadas viven en `.cursor/skills/*/SKILL.md`.
+- Este archivo define el baseline comun para todos los agentes.

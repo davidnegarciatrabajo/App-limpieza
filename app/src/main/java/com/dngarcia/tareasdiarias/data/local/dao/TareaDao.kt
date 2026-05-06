@@ -17,6 +17,9 @@ interface TareaDao {
     @Query("SELECT * FROM tarea ORDER BY fecha_creacion DESC")
     fun observeAll(): Flow<List<TareaEntity>>
 
+    @Query("SELECT * FROM tarea WHERE fecha_proxima_ejecucion IS NOT NULL")
+    suspend fun getPendingReminderTasks(): List<TareaEntity>
+
     @Query("SELECT * FROM tarea WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): TareaEntity?
 

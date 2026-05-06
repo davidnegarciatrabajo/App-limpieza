@@ -14,6 +14,10 @@ class TareaRepositoryImpl @Inject constructor(
         return tareaDao.observeAll().map { list -> list.map { it.toDomain() } }
     }
 
+    override suspend fun getPendingReminderTasks(): List<Tarea> {
+        return tareaDao.getPendingReminderTasks().map { it.toDomain() }
+    }
+
     override suspend fun getById(id: Long): Tarea? {
         return tareaDao.getById(id)?.toDomain()
     }

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="view-transition" content="same-origin" />
+  <title>Hoy · Tareas Diarias</title>
+  <link rel="stylesheet" href="m3-shared.css" />
+  <style>
+    #demo-empty:checked + .shell .lista-dia { display: none; }
+    #demo-empty:checked + .shell .empty-dia {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 24px 20px 100px;
+    }
+    #demo-empty:checked + .shell .fab-main { visibility: hidden; pointer-events: none; }
+    .empty-dia { display: none; }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="demo-empty" class="sr-only" />
+  <div class="shell" data-od-id="screen-shell">
+    <div class="proto-toggle">
+      <label for="demo-empty" style="cursor:pointer;">Demo: vista vacía (sin tareas)</label>
+    </div>
+    <div class="app" data-od-id="app-hoy">
+      <header class="top-app-bar" data-od-id="top-bar">
+        <h1 class="top-app-bar__title">Hoy</h1>
+        <button type="button" class="icon-btn" aria-label="Buscar">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        </button>
+      </header>
+
+      <div class="scroll" data-od-id="content">
+        <div class="lista-dia">
+          <div class="task-row" data-od-id="task-1">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Pagar servicios" />
+            <div>
+              <div style="display:flex;align-items:flex-start;gap:8px;">
+                <span class="status-dot status-dot--overdue" aria-hidden></span>
+                <h2 class="task-title">Pagar servicios</h2>
+              </div>
+              <p class="task-subtitle" data-od-id="task-sub-1">Incluir luz, gas e internet</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Mensual</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-overdue) 12%, transparent); color: var(--status-overdue); border: 0;">2 días de atraso</span>
+              </div>
+              <p class="task-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">06/05/2026 · 09:14</span></p>
+              <div class="task-row__actions">
+                <button type="button" class="btn-text-m3" aria-label="Editar subtítulo · Pagar servicios">Editar</button>
+                <button type="button" class="btn-text-m3" aria-label="Posponer Pagar servicios">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="task-row" data-od-id="task-2">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Limpiar cocina" />
+            <div>
+              <div style="display:flex;align-items:flex-start;gap:8px;">
+                <span class="status-dot status-dot--upcoming" aria-hidden></span>
+                <h2 class="task-title">Limpiar cocina</h2>
+              </div>
+              <p class="task-subtitle" data-od-id="task-sub-2">Encimera, piso y lavaplatos</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Diaria</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-upcoming) 12%, transparent); color: color-mix(in srgb, #885400 65%, black); border: 0;">Vence hoy · <span style="font-variant-numeric: tabular-nums;">14:00</span></span>
+              </div>
+              <p class="task-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">07/05/2026 · 08:02</span></p>
+              <div class="task-row__actions">
+                <button type="button" class="btn-text-m3" aria-label="Editar subtítulo · Limpiar cocina">Editar</button>
+                <button type="button" class="btn-text-m3" aria-label="Posponer Limpiar cocina">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="task-row" data-od-id="task-3">
+            <input class="checkbox-m3" type="checkbox" checked aria-label="Completar Revisar mail" />
+            <div>
+              <div style="display:flex;align-items:flex-start;gap:8px;">
+                <span class="status-dot status-dot--ok" aria-hidden></span>
+                <h2 class="task-title" style="text-decoration:line-through;opacity:.65;">Revisar mail</h2>
+              </div>
+              <p class="task-subtitle" style="opacity:.65;text-decoration:line-through;" data-od-id="task-sub-3">Bandeja principal y carpeta “Importante”</p>
+              <div class="chip-row">
+                <span class="chip">Trabajo</span>
+                <span class="chip chip--periodicity">Diaria</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-ok) 14%, transparent); color: color-mix(in srgb, #146632 70%, black); border: 0;">A tiempo · restan 4 días</span>
+              </div>
+              <p class="task-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">06/05/2026 · 22:41</span></p>
+              <div class="task-row__actions">
+                <button type="button" class="btn-text-m3" aria-label="Editar subtítulo · Revisar mail">Editar</button>
+                <button type="button" class="btn-text-m3" aria-label="Posponer Revisar mail">Posponer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-dia" data-od-id="empty-state">
+          <div class="empty-illus" aria-hidden></div>
+          <p style="font-size:18px;font-weight:500;margin:0 0 8px;">¡Todo al día!</p>
+          <p class="task-meta" style="max-width:28ch;">No hay tareas para hoy. Creá una con el botón + cuando quieras.</p>
+        </div>
+      </div>
+
+      <button type="button" class="fab fab-main" aria-label="Crear tarea rápida">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+
+      <nav class="bottom-nav" aria-label="Navegación principal" data-od-id="bottom-nav">
+        <span class="bottom-nav__item bottom-nav__item--active" aria-current="page">
+          <svg viewBox="0 0 24 24"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
+          Hoy
+        </span>
+        <a class="bottom-nav__item" href="03-tareas.html">
+          <svg viewBox="0 0 24 24"><path d="M9 11H5a2 2 0 0 0-2 2v7h6v-9zM19 9h-4a2 2 0 0 0-2 2v9h6V11a2 2 0 0 0-2-2z"/><path d="M12 2 3 7v2h18V7l-9-5z"/></svg>
+          Tareas
+        </a>
+        <a class="bottom-nav__item" href="06-categorias.html">
+          <svg viewBox="0 0 24 24"><path d="M4 6h7v7H4zM13 6h7v4h-7zM13 12h7v6h-7zM4 15h7v3H4z"/></svg>
+          Categorías
+        </a>
+        <a class="bottom-nav__item" href="02-menu.html">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          Menú
+        </a>
+      </nav>
+    </div>
+  </div>
+</body>
+</html>

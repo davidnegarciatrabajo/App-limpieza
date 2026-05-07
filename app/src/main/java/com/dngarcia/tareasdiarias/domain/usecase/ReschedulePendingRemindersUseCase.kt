@@ -18,6 +18,7 @@ class ReschedulePendingRemindersUseCase @Inject constructor(
                     taskId = task.id,
                     taskTitle = task.nombre,
                     reminderAt = reminderAt,
+                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(task.tipoPeriodicidad),
                 ),
             )
         }

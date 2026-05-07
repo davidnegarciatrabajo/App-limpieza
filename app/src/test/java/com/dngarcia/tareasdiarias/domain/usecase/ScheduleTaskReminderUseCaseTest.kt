@@ -16,6 +16,7 @@ class ScheduleTaskReminderUseCaseTest {
             taskId = 8L,
             taskTitle = "Ventilar casa",
             reminderAt = LocalDateTime.of(2026, 5, 6, 18, 0),
+            requiresExactScheduling = false,
         )
 
         useCase(reminder)

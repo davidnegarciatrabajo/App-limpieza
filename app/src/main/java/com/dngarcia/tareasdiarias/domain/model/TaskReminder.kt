@@ -6,4 +6,5 @@ data class TaskReminder(
     val taskId: Long,
     val taskTitle: String,
     val reminderAt: LocalDateTime,
+    val requiresExactScheduling: Boolean,
 )

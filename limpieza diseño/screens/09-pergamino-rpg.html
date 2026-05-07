@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Diólogo de pergamino · Tareas Diarias</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-void: #050508;
+      --parchment-base: #e8dcb8;
+      --parchment-deep: #c9b892;
+      --ink: #1a1510;
+      --wood-dark: #3d2515;
+      --wood-mid: #6b4423;
+      --wood-lit: #9a6b3f;
+      --leaf: #2f5c3e;
+      --accent-red: #c41e14;
+      --spark: #faf3dc;
+      --line-muted: rgba(61, 37, 21, 0.38);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background: radial-gradient(120% 80% at 50% 115%, rgba(232, 220, 184, 0.18), transparent 55%) var(--bg-void);
+      color: var(--ink);
+      font-family: 'Spectral', serif;
+      overflow-x: clip;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Brillo inferior tipo “arena mágica” */
+    body::before {
+      content: '';
+      position: fixed;
+      inset-inline: 0;
+      bottom: -8%;
+      block-size: 42%;
+      background: radial-gradient(ellipse 68% 45% at 50% 100%, rgba(232, 220, 184, 0.35), transparent 72%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* Estrellas · animación muy suave */
+    .spark-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .spark {
+      position: absolute;
+      width: var(--sz, 8px);
+      height: var(--sz, 8px);
+      background: var(--spark);
+      clip-path: polygon(50% 0%, 62% 35%, 100% 50%, 62% 65%, 50% 100%, 38% 65%, 0% 50%, 38% 35%);
+      opacity: 0;
+      animation: tw 3.8s ease-in-out infinite;
+      animation-delay: var(--d, 0s);
+      filter: drop-shadow(0 0 4px rgba(250, 243, 220, 0.9));
+    }
+    @keyframes tw {
+      0%, 100% { opacity: 0; transform: scale(0.4) rotate(-8deg); }
+      35% { opacity: 1; transform: scale(1) rotate(0deg); }
+      65% { opacity: 0.55; transform: scale(0.85) rotate(10deg); }
+    }
+    .stage {
+      position: relative;
+      z-index: 2;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 20px calc(96px + env(safe-area-inset-bottom, 0));
+    }
+    .scroll {
+      width: min(320px, 86vw);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      filter: drop-shadow(0 28px 50px rgba(0, 0, 0, 0.65));
+    }
+    .roller {
+      block-size: 28px;
+      margin-inline: -12px;
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, var(--wood-lit), var(--wood-mid) 42%, var(--wood-dark));
+      border: 1px solid rgba(0, 0, 0, 0.35);
+      box-shadow:
+        inset 0 3px 0 rgba(255, 235, 200, 0.25),
+        inset 0 -4px 6px rgba(0, 0, 0, 0.45);
+      position: relative;
+    }
+    .roller::after {
+      content: '';
+      position: absolute;
+      inset-block: 3px;
+      inset-inline-start: 8%;
+      inline-size: 10px;
+      border-radius: 4px;
+      background: linear-gradient(180deg, #4a2916, #2a160d);
+      box-shadow: 1px 0 0 rgba(255, 255, 255, 0.08);
+    }
+    .roller--bottom::after {
+      inset-inline-start: auto;
+      inset-inline-end: 8%;
+    }
+    .parchment-shell {
+      position: relative;
+      margin-block: -2px -4px;
+    }
+    .leaf {
+      position: absolute;
+      z-index: 0;
+      width: clamp(72px, 26vw, 110px);
+      height: auto;
+      opacity: 0.92;
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+      pointer-events: none;
+    }
+    .leaf--tr {
+      top: -6px;
+      right: -16px;
+      transform: rotate(12deg);
+    }
+    .leaf--bl {
+      bottom: -4px;
+      left: -20px;
+      transform: rotate(-18deg);
+    }
+    .parchment {
+      position: relative;
+      z-index: 1;
+      padding: 28px 26px 32px;
+      border-radius: 4px 6px 5px 4px / 18px 12px 16px 14px;
+      background:
+        linear-gradient(
+          115deg,
+          color-mix(in srgb, var(--parchment-base) 94%, transparent),
+          color-mix(in srgb, var(--parchment-deep) 22%, white) 48%,
+          var(--parchment-base)
+        );
+      border: 1px solid color-mix(in srgb, var(--wood-dark) 22%, transparent);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 250, 230, 0.35),
+        inset 0 -18px 40px rgba(90, 60, 30, 0.08),
+        inset 0 42px 60px rgba(255, 255, 255, 0.12);
+    }
+    /* Textura papel */
+    .parchment::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0.55;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      filter: url(#paper-noise);
+    }
+    /* Borde irregular leve */
+    .parchment::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      box-shadow:
+        inset 0 1px 0 rgba(61, 37, 21, 0.12),
+        inset -2px -1px 0 rgba(61, 37, 21, 0.08);
+      pointer-events: none;
+    }
+    .title-block {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    /* Título tipo pincel (latín) */
+    .title-brush {
+      margin: 0;
+      font-family: 'Caveat', cursive;
+      font-size: clamp(3rem, 14vw, 3.85rem);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      line-height: 1;
+      color: var(--ink);
+      text-shadow: 0 1px 0 rgba(255, 250, 230, 0.45);
+    }
+    .title-deck {
+      font-family: 'Spectral', serif;
+      font-size: 0.82rem;
+      font-weight: 400;
+      font-style: italic;
+      color: color-mix(in srgb, var(--ink) 58%, transparent);
+      margin-block: 0 4px;
+      letter-spacing: 0.02em;
+    }
+    /* Subrayado rojo orgánico */
+    .title-underline {
+      display: block;
+      width: min(72%, 200px);
+      margin: 10px auto 0;
+      height: 10px;
+    }
+    .title-underline svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .legend {
+      font-size: 0.72rem;
+      color: color-mix(in srgb, var(--ink) 45%, transparent);
+      text-align: center;
+      margin: 0 0 18px;
+      line-height: 1.45;
+    }
+    .quest-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .quest-item {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .quest-check {
+      position: relative;
+      width: 24px;
+      height: 24px;
+      margin-top: 2px;
+      border-radius: 3px;
+      background: linear-gradient(145deg, #5a3a22, #3a2415);
+      border: 1px solid rgba(0, 0, 0, 0.35);
+      box-shadow: inset 0 1px 0 rgba(255, 220, 180, 0.2);
+      flex-shrink: 0;
+    }
+    .quest-check input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      margin: 0;
+    }
+    .quest-check svg {
+      position: absolute;
+      inset: 2px;
+      width: calc(100% - 4px);
+      height: calc(100% - 4px);
+      opacity: 0;
+      transition: opacity 0.18s ease;
+      pointer-events: none;
+    }
+    .quest-check input:checked + svg {
+      opacity: 1;
+    }
+    .quest-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      padding-top: 3px;
+    }
+    .line-bar {
+      display: block;
+      height: 7px;
+      border-radius: 3px;
+      background: var(--line-muted);
+    }
+    .line-bar--long { width: 92%; }
+    .line-bar--mid { width: 68%; }
+    .line-bar--short { width: 44%; }
+    .quest-label {
+      font-size: 0.8rem;
+      color: color-mix(in srgb, var(--ink) 62%, transparent);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+    .quest-item:has(.quest-check input:checked) .quest-lines .line-bar {
+      opacity: 0.35;
+    }
+    .quest-item:has(.quest-check input:checked) .quest-label {
+      text-decoration: line-through;
+      opacity: 0.55;
+    }
+    .foot-note {
+      margin: 22px 4px 0;
+      font-size: 0.68rem;
+      text-align: center;
+      color: color-mix(in srgb, var(--spark) 38%, transparent);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true">
+    <defs>
+      <filter id="paper-noise" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="7" result="n" />
+        <feColorMatrix type="matrix" in="n" values="0 0 0 0 0.35  0 0 0 0 0.28  0 0 0 0 0.18  0 0 0 0.22 0" result="c" />
+        <feGaussianBlur in="c" stdDeviation="0.35" />
+      </filter>
+    </defs>
+  </svg>
+
+  <div class="spark-layer" aria-hidden="true">
+    <span class="spark" style="--sz:7px;--d:0s;top:18%;left:12%"></span>
+    <span class="spark" style="--sz:5px;--d:0.6s;top:28%;right:16%"></span>
+    <span class="spark" style="--sz:9px;--d:1.1s;top:52%;left:8%"></span>
+    <span class="spark" style="--sz:6px;--d:1.8s;bottom:30%;right:11%"></span>
+    <span class="spark" style="--sz:5px;--d:2.4s;bottom:22%;left:22%"></span>
+    <span class="spark" style="--sz:8px;--d:2.9s;top:40%;right:7%"></span>
+  </div>
+
+  <div class="stage">
+    <div class="scroll" data-od-id="rpg-scroll">
+      <div class="roller roller--top" aria-hidden="true"></div>
+      <div class="parchment-shell">
+        <svg class="leaf leaf--tr" viewBox="0 0 120 100" aria-hidden="true">
+          <path fill="none" stroke="var(--leaf)" stroke-width="3" stroke-linecap="round"
+            d="M20 82 Q55 28 104 14 M38 76 Q72 42 96 34 M52 68 Q84 52 92 46" />
+          <path fill="var(--leaf)" opacity="0.9"
+            d="M76 22c8-10 22-16 32-10-6 12-18 20-32 24-4-6-6-10 0-14z" />
+        </svg>
+        <svg class="leaf leaf--bl" viewBox="0 0 120 100" aria-hidden="true">
+          <path fill="none" stroke="var(--leaf)" stroke-width="3" stroke-linecap="round"
+            d="M12 18 Q48 44 88 88 M24 28 Q58 52 82 72" />
+          <path fill="var(--leaf)" opacity="0.88"
+            d="M28 78c-10 4-12 18-2 22 8-8 18-16 16-28-6 2-10 4-14 6z" />
+        </svg>
+
+        <article class="parchment">
+          <header class="title-block">
+            <p class="title-deck">Misión del día · hogar</p>
+            <h1 class="title-brush">Bitácora</h1>
+            <span class="title-underline" aria-hidden="true">
+              <svg viewBox="0 0 200 10" preserveAspectRatio="none">
+                <path
+                  d="M4 6.5 C48 1.5 92 10.5 136 5.2 S188 2.8 196 5.8"
+                  fill="none"
+                  stroke="var(--accent-red)"
+                  stroke-width="5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  opacity="0.95"
+                />
+              </svg>
+            </span>
+          </header>
+          <p class="legend">Pergamino de misión · texto en español · prototipo libre (no Material 3).</p>
+          <ul class="quest-list">
+            <li class="quest-item">
+              <label class="quest-check" aria-label="Registrar barrido del piso">
+                <input type="checkbox" checked />
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 12.5 10 17 19 7" fill="none" stroke="var(--accent-red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </label>
+              <div class="quest-lines">
+                <span class="line-bar line-bar--long"></span>
+                <span class="line-bar line-bar--mid"></span>
+                <p class="quest-label">Barrido del piso · ejemplo</p>
+              </div>
+            </li>
+            <li class="quest-item">
+              <label class="quest-check" aria-label="Registrar limpiar ventanas">
+                <input type="checkbox" checked />
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 12.5 10 17 19 7" fill="none" stroke="var(--accent-red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </label>
+              <div class="quest-lines">
+                <span class="line-bar line-bar--long"></span>
+                <span class="line-bar line-bar--short"></span>
+                <p class="quest-label">Limpiar ventanas · ejemplo</p>
+              </div>
+            </li>
+            <li class="quest-item">
+              <label class="quest-check" aria-label="Registrar ordenar estantería">
+                <input type="checkbox" />
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 12.5 10 17 19 7" fill="none" stroke="var(--accent-red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </label>
+              <div class="quest-lines">
+                <span class="line-bar line-bar--mid"></span>
+                <span class="line-bar line-bar--long"></span>
+                <p class="quest-label">Ordenar estantería · ejemplo</p>
+              </div>
+            </li>
+            <li class="quest-item">
+              <label class="quest-check" aria-label="Registrar sacar la basura">
+                <input type="checkbox" />
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 12.5 10 17 19 7" fill="none" stroke="var(--accent-red)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </label>
+              <div class="quest-lines">
+                <span class="line-bar line-bar--long"></span>
+                <span class="line-bar line-bar--mid"></span>
+                <p class="quest-label">Sacar la basura · ejemplo</p>
+              </div>
+            </li>
+          </ul>
+        </article>
+      </div>
+      <div class="roller roller--bottom" aria-hidden="true"></div>
+      <p class="foot-note">Composición original en HTML/CSS/SVG · casillas interactivas</p>
+    </div>
+  </div>
+</body>
+</html>

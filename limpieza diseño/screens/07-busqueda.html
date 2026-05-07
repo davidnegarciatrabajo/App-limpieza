@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Búsqueda avanzada · Tareas Diarias</title>
+  <link rel="stylesheet" href="m3-shared.css" />
+  <style>
+    #demo-no-results:checked + .shell .when-results { display: none !important; }
+    #demo-no-results:checked + .shell .when-empty { display: block !important; }
+    #demo-no-results:checked + .shell label[for=demo-no-results]::after { content: ' (vacío visible)'; }
+    .when-empty { display: none; }
+  </style>
+</head>
+<body>
+  <input type="checkbox" id="demo-no-results" class="sr-only" aria-label="Demo sin resultados" />
+  <div class="shell" data-od-id="screen-shell">
+    <div class="proto-toggle"><label for="demo-no-results" style="cursor:pointer;">Demo: estado sin resultados</label></div>
+    <div class="app app--no-nav">
+      <header class="top-app-bar" data-od-id="top-bar">
+        <button type="button" class="icon-btn" onclick="history.back()" aria-label="Volver">
+          <svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>
+        </button>
+        <h1 class="top-app-bar__title" style="font-size:18px;">Búsqueda</h1>
+      </header>
+
+      <div class="search-bar" data-od-id="search-root">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden stroke="currentColor" fill="none" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" placeholder="Buscar tareas por nombre…" autocomplete="off" />
+        <button type="button" class="icon-btn" style="margin-inline-start:auto;" aria-label="Filtros">
+          <svg viewBox="0 0 24 24"><path d="M4 7h16M8 17h8M10 11h4"/></svg>
+        </button>
+      </div>
+
+      <details class="filter-panel" open data-od-id="filtros">
+        <summary>Filtros</summary>
+        <div class="filter-body">
+          <p class="section-title" style="margin-left:0;">Estado</p>
+          <div class="chip-row" style="margin-bottom:12px;">
+            <span class="chip chip--selected">Vencida</span>
+            <span class="chip">Próxima</span>
+            <span class="chip">OK</span>
+          </div>
+          <p class="section-title" style="margin-left:0;margin-top:4px;">Fecha · rango</p>
+          <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+            <label style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--md-sys-color-on-surface-variant);">Desde
+              <input class="input-m3" type="date" aria-label="Fecha inicial" />
+            </label>
+            <label style="flex:1;min-width:140px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--md-sys-color-on-surface-variant);">Hasta
+              <input class="input-m3" type="date" aria-label="Fecha final" />
+            </label>
+          </div>
+          <p class="section-title" style="margin-left:0;">Categoría</p>
+          <select class="select-m3" aria-label="Categoría"><option>Cualquiera</option><option>Hogar</option><option>Trabajo</option><option>Salud</option></select>
+          <p class="section-title" style="margin-left:0;margin-top:12px;">Periodicidad</p>
+          <div class="chip-row" style="margin-bottom:8px;">
+            <span class="chip chip--selected">Todas</span>
+            <span class="chip">Diarias</span>
+            <span class="chip">Semanales</span>
+            <span class="chip">Únicas</span>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:12px;">
+            <button type="button" class="btn-filled" style="flex:1;border-radius:20px;">Aplicar filtros</button>
+            <button type="button" class="btn-outlined" style="flex:1;border-radius:20px;">Limpiar</button>
+          </div>
+        </div>
+      </details>
+
+      <div class="scroll when-results" data-od-id="results">
+        <div class="task-row" style="grid-template-columns:20px 1fr;">
+          <span class="status-dot status-dot--overdue"></span>
+          <div>
+            <h2 class="task-title" style="margin:0 0 4px;font-size:16px;">Pagar servicios</h2>
+            <div class="chip-row"><span class="chip">Hogar</span><span class="chip chip--periodicity">Mensual</span></div>
+          </div>
+        </div>
+        <div class="task-row" style="grid-template-columns:20px 1fr;">
+          <span class="status-dot status-dot--upcoming"></span>
+          <div>
+            <h2 class="task-title" style="margin:0 0 4px;font-size:16px;">Limpiar cocina</h2>
+            <div class="chip-row"><span class="chip">Hogar</span><span class="chip chip--periodicity">Diaria</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="when-empty pad" style="padding:48px 24px;text-align:center;" data-od-id="empty-search">
+        <div class="empty-illus"></div>
+        <p style="font-size:17px;font-weight:500;margin:12px 0 6px;">No se encontraron tareas</p>
+        <p class="task-meta" style="margin:0;">Ajustá filtros o probá otros términos.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

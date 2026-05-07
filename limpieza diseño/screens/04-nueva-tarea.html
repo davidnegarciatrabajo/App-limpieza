@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Nueva tarea · Tareas Diarias</title>
+  <link rel="stylesheet" href="m3-shared.css" />
+</head>
+<body>
+  <div class="app app--no-nav" data-od-id="screen-shell">
+    <header class="top-app-bar" data-od-id="top-bar">
+      <button type="button" class="icon-btn" onclick="history.back()" aria-label="Volver">
+        <svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>
+      </button>
+      <h1 class="top-app-bar__title" style="padding-inline-start:4px;">Nueva tarea</h1>
+    </header>
+
+    <div class="scroll" data-od-id="form-body" style="padding-bottom:120px;">
+      <div class="field" style="padding-top:8px;">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" class="input-m3" type="text" value="Limpiar cocina" autocomplete="off" aria-invalid="true" />
+        <p class="field-error" id="err-nombre" data-od-id="err-nombre">Ya existe una tarea con ese nombre.</p>
+      </div>
+      <div class="field">
+        <label for="subtitulo">Subtítulo</label>
+        <input id="subtitulo" class="input-m3" type="text" value="Encimera, piso y lavaplatos" autocomplete="off" data-od-id="field-subtitulo" />
+        <p class="field-hint" id="hint-sub">Se muestra debajo del nombre en <strong>Hoy</strong> para dar contexto rápido.</p>
+      </div>
+      <div class="field">
+        <label for="fecha-inicio">Fecha de inicio</label>
+        <input id="fecha-inicio" class="input-m3" type="date" value="2026-05-07" data-od-id="field-fecha-inicio" />
+        <p class="field-hint">Primera fecha en la que aplica el ritmo de la tarea (recurrente o única).</p>
+      </div>
+      <div class="field">
+        <label for="categoria">Categoría</label>
+        <select id="categoria" class="select-m3" aria-describedby="err-categoria">
+          <option value="">Seleccioná una categoría</option>
+          <option selected>Hogar</option>
+          <option>Trabajo</option>
+          <option>Salud</option>
+          <option value="__crear">+ Crear nueva</option>
+        </select>
+      </div>
+      <dialog id="dlg-categoria" style="border:0;border-radius:24px;padding:24px;width:min(90vw,340px);" data-od-id="dlg-categoria">
+        <form method="dialog">
+          <h2 style="margin:0 0 12px;font-size:18px;font-weight:500;">Nueva categoría</h2>
+          <label for="nombre-cat" class="sr-only">Nombre categoría</label>
+          <input id="nombre-cat" class="input-m3" type="text" placeholder="Ej. Hogar, Trabajo" />
+          <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
+            <button type="button" class="btn-outlined" style="width:auto;min-height:44px;padding-inline:20px;border-radius:20px;">Cancelar</button>
+            <button type="submit" class="btn-filled" style="width:auto;min-height:44px;padding-inline:20px;border-radius:20px;">Guardar categoría</button>
+          </div>
+        </form>
+      </dialog>
+      <div class="field">
+        <span id="lbl-per">Periodicidad</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="lbl-per" style="margin-top:8px;">
+          <label><input type="radio" name="per" /> Diaria</label>
+          <label><input type="radio" name="per" checked /> Semanal</label>
+          <label><input type="radio" name="per" /> Mensual</label>
+          <label><input type="radio" name="per" /> Semestral</label>
+          <label><input type="radio" name="per" /> Personalizada</label>
+          <label><input type="radio" name="per" /> Única</label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="custom-dias">Si es personalizada, indicá cada cuántos días</label>
+        <input id="custom-dias" class="input-m3" type="number" placeholder="Ej. 10" aria-describedby="err-dias" inputmode="numeric" />
+      </div>
+      <div class="field">
+        <label for="notas">Notas (opcional)</label>
+        <textarea id="notas" class="textarea-m3" placeholder="Contexto corto sobre la tarea"></textarea>
+      </div>
+
+      <div style="padding:24px 16px 120px;display:flex;flex-direction:column;gap:12px;" data-od-id="cta">
+        <button type="button" class="btn-filled" onclick="document.getElementById('snack-save').hidden=false">Guardar</button>
+        <button type="button" class="btn-outlined" onclick="history.back()">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="snackbar" id="snack-save" role="status" data-od-id="snackbar" hidden>
+      <span>No se pudo guardar. Reintentá en un momento.</span>
+      <button type="button">Reintentar</button>
+    </div>
+  </div>
+  <script>
+    document.getElementById('categoria')?.addEventListener('change', function () {
+      if (this.value === '__crear') document.getElementById('dlg-categoria')?.showModal();
+    });
+    document.querySelector('#dlg-categoria .btn-outlined')?.addEventListener('click', function () {
+      document.getElementById('dlg-categoria')?.close();
+    });
+    document.querySelector('#snack-save button')?.addEventListener('click', function () {
+      document.getElementById('snack-save').hidden = true;
+    });
+  </script>
+</body>
+</html>

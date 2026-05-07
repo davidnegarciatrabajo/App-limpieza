@@ -3,6 +3,7 @@ package com.dngarcia.tareasdiarias.data.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.dngarcia.tareasdiarias.domain.usecase.ReschedulePendingRemindersUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -25,10 +26,15 @@ class BootReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
+                Log.d(TAG, "Reprogramando reminders tras reinicio")
                 reschedulePendingRemindersUseCase()
             } finally {
                 pendingResult.finish()
             }
         }
+    }
+
+    private companion object {
+        const val TAG: String = "BootReceiver"
     }
 }

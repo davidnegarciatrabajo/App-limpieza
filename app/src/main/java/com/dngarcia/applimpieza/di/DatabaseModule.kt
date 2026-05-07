@@ -2,7 +2,9 @@ package com.dngarcia.tareasdiarias.di
 
 import android.content.Context
 import androidx.room.Room
+import com.dngarcia.tareasdiarias.BuildConfig
 import com.dngarcia.tareasdiarias.data.local.TareasDatabase
+import com.dngarcia.tareasdiarias.data.local.TareasMigrations
 import com.dngarcia.tareasdiarias.data.local.dao.CategoriaDao
 import com.dngarcia.tareasdiarias.data.local.dao.EjecucionDao
 import com.dngarcia.tareasdiarias.data.local.dao.TareaDao
@@ -19,11 +21,20 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): TareasDatabase {
-        return Room.databaseBuilder(
+        val builder = Room.databaseBuilder(
             context,
             TareasDatabase::class.java,
             TareasDatabase.DB_NAME,
-        ).fallbackToDestructiveMigration(true).build()
+        )
+            .addMigrations(
+                TareasMigrations.MIGRATION_1_2,
+                TareasMigrations.MIGRATION_2_3,
+            )
+        if (BuildConfig.DEBUG) {
+            // Si la BD se recrea asi pero el flag de seed sigue en prefs, borrar datos de la app para repetir el seed.
+            builder.fallbackToDestructiveMigration(dropAllTables = true)
+        }
+        return builder.build()
     }
 
     @Provides

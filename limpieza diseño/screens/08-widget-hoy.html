@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Widget · Bitácora (pergamino) · Tareas Diarias</title>
+  <link rel="stylesheet" href="m3-shared.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    /* Launcher · mismo universo visual que screens/09-pergamino-rpg.html */
+    .parchment-widget-root {
+      --pw-void: #050508;
+      --pw-parchment-base: #e8dcb8;
+      --pw-parchment-deep: #c9b892;
+      --pw-ink: #1a1510;
+      --pw-wood-dark: #3d2515;
+      --pw-wood-mid: #6b4423;
+      --pw-wood-lit: #9a6b3f;
+      --pw-line: rgba(61, 37, 21, 0.28);
+      --pw-cream: #faf3dc;
+      --pw-accent-red: #c41e14;
+    }
+    .launcher-page.parchment-widget-root {
+      min-height: 100%;
+      background: radial-gradient(120% 80% at 50% 100%, rgba(232, 220, 184, 0.14), transparent 55%) var(--pw-void);
+      padding: 20px 16px 48px;
+      color: var(--pw-cream);
+    }
+    .launcher-page.parchment-widget-root .proto-toggle {
+      background: color-mix(in srgb, var(--pw-parchment-base) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--pw-cream) 22%, transparent);
+      color: var(--pw-cream);
+    }
+    .launcher-page.parchment-widget-root .launcher-hint {
+      color: color-mix(in srgb, var(--pw-cream) 78%, transparent);
+    }
+    .launcher-page.parchment-widget-root .launcher-hint strong {
+      color: var(--pw-cream);
+    }
+    .launcher-page.parchment-widget-root .app-widget__label {
+      color: color-mix(in srgb, var(--pw-cream) 70%, transparent);
+    }
+
+    .spark-layer-w {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .spark-layer-w span {
+      position: absolute;
+      width: var(--sz, 6px);
+      height: var(--sz, 6px);
+      background: var(--pw-cream);
+      clip-path: polygon(50% 0%, 62% 35%, 100% 50%, 62% 65%, 50% 100%, 38% 65%, 0% 50%, 38% 35%);
+      opacity: 0;
+      animation: tw-w 4s ease-in-out infinite;
+      animation-delay: var(--d, 0s);
+      filter: drop-shadow(0 0 3px rgba(250, 243, 220, 0.85));
+    }
+    @keyframes tw-w {
+      0%, 100% { opacity: 0; transform: scale(0.35); }
+      40% { opacity: 0.85; transform: scale(1); }
+      70% { opacity: 0.4; }
+    }
+
+    .parchment-widget-wrap {
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 22px 38px rgba(0, 0, 0, 0.55));
+      margin-bottom: 8px;
+    }
+    .parchment-widget__roller {
+      block-size: 22px;
+      margin-inline: -8px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--pw-wood-lit), var(--pw-wood-mid) 42%, var(--pw-wood-dark));
+      border: 1px solid rgba(0, 0, 0, 0.35);
+      box-shadow:
+        inset 0 2px 0 rgba(255, 235, 200, 0.22),
+        inset 0 -3px 5px rgba(0, 0, 0, 0.42);
+      position: relative;
+    }
+    .parchment-widget__roller::after {
+      content: '';
+      position: absolute;
+      inset-block: 2px;
+      inset-inline-start: 10%;
+      inline-size: 8px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, #4a2916, #2a160d);
+    }
+    .parchment-widget__roller--bottom::after {
+      inset-inline-start: auto;
+      inset-inline-end: 10%;
+    }
+    .parchment-widget-wrap .app-widget {
+      position: relative;
+      margin-block: -1px -2px;
+      border-radius: 5px 4px 5px 4px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background:
+        linear-gradient(
+          115deg,
+          color-mix(in srgb, var(--pw-parchment-base) 94%, transparent),
+          color-mix(in srgb, var(--pw-parchment-deep) 22%, white) 48%,
+          var(--pw-parchment-base)
+        );
+      border: 1px solid color-mix(in srgb, var(--pw-wood-dark) 24%, transparent);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 250, 230, 0.32),
+        inset 0 -14px 32px rgba(90, 60, 30, 0.07);
+      color: var(--pw-ink);
+      overflow: hidden;
+    }
+    .parchment-widget-wrap .app-widget::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0.45;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      filter: url(#paper-noise-w);
+    }
+
+    .parchment-widget-wrap .widget-bar {
+      background: color-mix(in srgb, var(--pw-parchment-deep) 18%, var(--pw-parchment-base));
+      border-bottom: 1px solid var(--pw-line);
+      padding-block: 8px;
+    }
+    .widget-bar__titles {
+      flex: 1;
+      min-width: 0;
+    }
+    .widget-deck-line {
+      margin: 0 0 2px;
+      font-family: 'Spectral', serif;
+      font-size: 12px;
+      font-style: italic;
+      font-weight: 400;
+      color: color-mix(in srgb, var(--pw-ink) 52%, transparent);
+      letter-spacing: 0.02em;
+    }
+    .widget-brush-title {
+      margin: 0;
+      font-family: 'Caveat', cursive;
+      font-size: 1.85rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--pw-ink);
+      text-shadow: 0 1px 0 rgba(255, 250, 230, 0.4);
+    }
+    .parchment-widget-wrap .widget-icon-btn {
+      color: color-mix(in srgb, var(--pw-ink) 72%, transparent);
+    }
+    .parchment-widget-wrap .widget-icon-btn:hover {
+      background: color-mix(in srgb, var(--pw-wood-dark) 10%, transparent);
+    }
+    .parchment-widget-wrap .widget-fab-mini {
+      background: linear-gradient(180deg, var(--pw-wood-lit), var(--pw-wood-mid) 55%, var(--pw-wood-dark));
+      color: var(--pw-cream);
+      box-shadow: inset 0 1px 0 rgba(255, 235, 200, 0.2), 0 2px 6px rgba(0, 0, 0, 0.35);
+    }
+
+    .parchment-widget-wrap .wtask {
+      border-bottom-color: var(--pw-line);
+    }
+    .parchment-widget-wrap .w2-title,
+    .parchment-widget-wrap .wtask-title {
+      color: var(--pw-ink);
+    }
+    .parchment-widget-wrap .w2-sub,
+    .parchment-widget-wrap .wtask-sub {
+      color: color-mix(in srgb, var(--pw-ink) 58%, transparent);
+    }
+    .parchment-widget-wrap .w2-meta,
+    .parchment-widget-wrap .wtask-meta,
+    .parchment-widget-wrap .task-meta {
+      color: color-mix(in srgb, var(--pw-ink) 48%, transparent);
+    }
+    .parchment-widget-wrap .chip {
+      background: color-mix(in srgb, var(--pw-wood-dark) 10%, var(--pw-parchment-base));
+      color: var(--pw-ink);
+      border-color: color-mix(in srgb, var(--pw-wood-dark) 22%, transparent);
+    }
+    .parchment-widget-wrap .chip--periodicity {
+      background: rgba(255, 252, 245, 0.35);
+      border: 1px solid var(--pw-line);
+      color: color-mix(in srgb, var(--pw-ink) 75%, transparent);
+    }
+    .parchment-widget-wrap .btn-text-m3 {
+      color: var(--pw-wood-dark);
+    }
+    .parchment-widget-wrap .btn-text-m3:hover {
+      background: color-mix(in srgb, var(--pw-wood-dark) 8%, transparent);
+    }
+    .parchment-widget-wrap .checkbox-m3 {
+      accent-color: var(--pw-accent-red);
+    }
+
+    .parchment-widget-wrap .widget-empty {
+      background: color-mix(in srgb, var(--pw-parchment-base) 88%, white);
+    }
+    .parchment-widget-wrap .widget-empty .empty-title {
+      color: var(--pw-ink);
+    }
+
+    /* Launcher de demostración (no forma parte del widget real) */
+    .launcher-page {
+      min-height: 100%;
+      padding: 20px 16px 48px;
+    }
+    .launcher-page > .proto-toggle {
+      margin: 0 0 16px;
+      border-radius: var(--radius-12);
+      max-width: 720px;
+    }
+    .launcher-hint {
+      font-size: 13px;
+      color: var(--md-sys-color-on-surface-variant);
+      margin: 0 0 16px;
+      max-width: 62ch;
+      line-height: 1.45;
+    }
+    .launcher-hint strong { color: var(--md-sys-color-on-surface); font-weight: 500; }
+
+    .widgets-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 752px;
+    }
+
+    /* Contenedor tipo App Widget M3: superficie elevada, 16dp radio */
+    .app-widget {
+      border-radius: 16px;
+      background: var(--md-sys-color-surface-container-lowest);
+      box-shadow:
+        0 1px 2px rgb(0 0 0 / 0.22),
+        0 2px 6px 2px rgb(0 0 0 / 0.1);
+      border: 1px solid color-mix(in srgb, var(--md-sys-color-outline-variant) 65%, transparent);
+      overflow: hidden;
+      color: var(--md-sys-color-on-surface);
+    }
+
+    .app-widget__label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--md-sys-color-on-surface-variant);
+      margin: 0 0 8px;
+    }
+
+    .widget-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 48px;
+      padding: 6px 12px 6px 14px;
+      background: color-mix(in srgb, var(--md-sys-color-primary-container) 35%, var(--md-sys-color-surface-container-lowest));
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    }
+    .widget-bar__title {
+      flex: 1;
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .widget-bar__actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .widget-icon-btn {
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 20px;
+      background: transparent;
+      color: var(--md-sys-color-on-surface-variant);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      padding: 0;
+    }
+    .widget-icon-btn:hover {
+      background: color-mix(in srgb, var(--md-sys-color-on-surface) 6%, transparent);
+    }
+    .widget-icon-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.7;
+    }
+    .widget-fab-mini {
+      width: 40px;
+      height: 40px;
+      border-radius: 20px;
+      border: none;
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: var(--elevation-1);
+    }
+    .widget-fab-mini svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.2;
+    }
+
+    .widget-list { overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+
+    /* Lista desplazable cuando hay muchas tareas; las completadas van abajo (order + flex) */
+    .widget-list-scroll {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-color: color-mix(in srgb, var(--pw-wood-dark) 35%, transparent) transparent;
+      scrollbar-width: thin;
+    }
+    .widget-list-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .widget-list-scroll::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--pw-wood-dark) 40%, transparent);
+      border-radius: 999px;
+    }
+    .app-widget--2x1 .widget-list-scroll--2x1 {
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: 200px;
+      padding-block-end: 4px;
+      gap: 10px;
+    }
+    .app-widget--2x2 .widget-list-scroll--2x2 {
+      max-height: 320px;
+    }
+    .app-widget--4x2 .widget-list-scroll--4x2 {
+      max-height: 380px;
+    }
+    /* Pendientes arriba (order 1), completadas apiladas abajo (order 2) */
+    .widget-list-scroll > .wtask:not(:has(.checkbox-m3:checked)),
+    .widget-list-scroll > .w2-row:not(:has(.checkbox-m3:checked)) {
+      order: 1;
+    }
+    .widget-list-scroll > .wtask:has(.checkbox-m3:checked),
+    .widget-list-scroll > .w2-row:has(.checkbox-m3:checked) {
+      order: 2;
+    }
+    .widget-empty {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px 16px 24px;
+    }
+    .widget-empty .empty-illus {
+      width: 72px;
+      height: 72px;
+      margin: 8px auto 12px;
+    }
+    .widget-empty p { margin: 0; }
+    .widget-empty .empty-title { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+
+    #demo-empty-widget:checked ~ .widgets-stack .widget-list { display: none; }
+    #demo-empty-widget:checked ~ .widgets-stack .widget-empty { display: flex; }
+
+    /* ——— 2×1 (resumen + primera tarea) ——— */
+    .app-widget--2x1 { max-width: 360px; }
+    .app-widget--2x1 .widget-compact {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      padding: 10px 12px 12px;
+    }
+    .w2-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--md-sys-color-on-surface-variant);
+      font-variant-numeric: tabular-nums;
+    }
+    .w2-row {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 6px;
+      align-items: start;
+    }
+    .w2-row .checkbox-m3 {
+      width: 40px;
+      height: 40px;
+      margin-top: 2px;
+    }
+    .w2-row .w2-title-block { min-width: 0; }
+    .w2-title-block .wtask-head { margin-bottom: 2px; }
+    .w2-title-block .status-dot { margin-top: 5px; }
+    .w2-title {
+      font-size: 15px;
+      font-weight: 500;
+      margin: 0 0 2px;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .w2-sub {
+      font-size: 12px;
+      color: var(--md-sys-color-on-surface-variant);
+      margin: 0 0 6px;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .app-widget--2x1 .chip-row { margin-top: 0; }
+    .app-widget--2x1 .chip {
+      height: 26px;
+      padding: 0 10px;
+      font-size: 11px;
+      border-radius: 6px;
+    }
+
+    /* ——— 2×2 (dos tareas, misma jerarquía que Hoy, más compacta) ——— */
+    .app-widget--2x2 { max-width: 360px; }
+    .wtask {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 8px;
+      align-items: start;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    }
+    .wtask .checkbox-m3 {
+      width: 40px;
+      height: 40px;
+    }
+    .wtask .status-dot { margin-top: 15px; margin-inline-start: 4px; }
+    .wtask-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .wtask-head .status-dot { margin-top: 5px; }
+    .wtask-title {
+      font-size: 15px;
+      font-weight: 500;
+      margin: 0 0 3px;
+      line-height: 1.25;
+    }
+    /* Tachado al marcar el checkbox (paridad con “completar” en la app) */
+    .w2-row:has(.checkbox-m3:checked) .w2-title,
+    .w2-row:has(.checkbox-m3:checked) .w2-sub {
+      text-decoration: line-through;
+      opacity: 0.65;
+    }
+    .wtask:has(.checkbox-m3:checked) .wtask-title,
+    .wtask:has(.checkbox-m3:checked) .wtask-sub {
+      text-decoration: line-through;
+      opacity: 0.65;
+    }
+    .w2-row:has(.checkbox-m3:checked) .chip-row,
+    .wtask:has(.checkbox-m3:checked) .chip-row {
+      opacity: 0.72;
+    }
+
+    .wtask-title--done {
+      text-decoration: line-through;
+      opacity: 0.65;
+    }
+    .wtask-sub {
+      font-size: 12px;
+      color: var(--md-sys-color-on-surface-variant);
+      margin: 0 0 6px;
+      line-height: 1.3;
+      max-width: 100%;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .wtask-sub--done {
+      text-decoration: line-through;
+      opacity: 0.65;
+    }
+    .wtask .chip {
+      height: 28px;
+      padding: 0 10px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+    .wtask-meta {
+      font-size: 11px;
+      color: var(--md-sys-color-on-surface-variant);
+      margin: 6px 0 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .wtask-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .btn-text-m3--widget {
+      min-height: 36px;
+      padding: 6px 10px;
+      font-size: 13px;
+      border-radius: 18px;
+    }
+
+    /* ——— 4×2 (tres tareas, paridad con pantalla Hoy) ——— */
+    .app-widget--4x2 { max-width: 720px; }
+    .app-widget--4x2 .wtask {
+      grid-template-columns: 44px 1fr;
+      padding: 12px 14px;
+    }
+    .app-widget--4x2 .wtask .checkbox-m3 {
+      width: 44px;
+      height: 44px;
+    }
+    .app-widget--4x2 .wtask-title { font-size: 16px; }
+    .app-widget--4x2 .wtask-sub { font-size: 13px; -webkit-line-clamp: 3; }
+    .app-widget--4x2 .wtask-meta { font-size: 12px; }
+    .app-widget--4x2 .btn-text-m3--widget {
+      min-height: 40px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body class="launcher-page parchment-widget-root">
+  <svg width="0" height="0" aria-hidden="true">
+    <defs>
+      <filter id="paper-noise-w" x="-20%" y="-20%" width="140%" height="140%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" seed="11" result="n" />
+        <feColorMatrix type="matrix" in="n" values="0 0 0 0 0.35  0 0 0 0 0.28  0 0 0 0 0.18  0 0 0 0.22 0" result="c" />
+        <feGaussianBlur in="c" stdDeviation="0.35" />
+      </filter>
+    </defs>
+  </svg>
+  <div class="spark-layer-w" aria-hidden="true">
+    <span style="--sz:5px;--d:0s;top:12%;left:18%"></span>
+    <span style="--sz:4px;--d:0.7s;top:22%;right:14%"></span>
+    <span style="--sz:6px;--d:1.3s;bottom:28%;left:12%"></span>
+    <span style="--sz:5px;--d:2s;bottom:18%;right:20%"></span>
+  </div>
+
+  <input type="checkbox" id="demo-empty-widget" class="sr-only" />
+  <div class="proto-toggle">
+    <label for="demo-empty-widget" style="cursor:pointer;">Demo: widget vacío (“¡Todo al día!”)</label>
+  </div>
+  <p class="launcher-hint">
+    <strong>Widgets “Hoy”</strong> con tema <strong>Bitácora</strong> · pergamino y rollos (misma línea que <strong>09-pergamino-rpg</strong>).
+    Tamaños de launcher 2×1, 2×2 y 4×2: la <strong>lista de tareas hace scroll</strong> si no entra en el alto del widget. Al marcar la casilla la fila se <strong>tacha</strong> y pasa <strong>abajo del todo</strong> (completadas apiladas). Estado por color, nombre, subtítulo, categoría + periodicidad, plazo, última modificación, <strong>Editar</strong> y <strong>Posponer</strong>.
+    Tocar <strong>Buscar</strong> o <strong>+</strong> abriría la app (prototipo estático).
+  </p>
+
+  <div class="widgets-stack">
+    <div>
+      <p class="app-widget__label">2×1 · compacto · lista con scroll</p>
+      <div class="parchment-widget-wrap">
+        <div class="parchment-widget__roller parchment-widget__roller--top" aria-hidden="true"></div>
+        <section class="app-widget app-widget--2x1" data-od-id="widget-2x1" aria-label="Widget Bitácora pequeño">
+        <div class="widget-bar">
+          <div class="widget-bar__titles">
+            <p class="widget-deck-line">Hoy</p>
+            <h2 class="widget-brush-title">Bitácora</h2>
+          </div>
+          <div class="widget-bar__actions">
+            <button type="button" class="widget-icon-btn" aria-label="Buscar">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+            <button type="button" class="widget-fab-mini" aria-label="Crear tarea rápida">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="widget-list">
+          <div class="widget-compact">
+            <p class="w2-meta">Varias tareas hoy · próxima <span style="font-variant-numeric: tabular-nums;">14:00</span></p>
+            <div class="widget-list-scroll widget-list-scroll--2x1">
+            <div class="w2-row">
+              <input class="checkbox-m3" type="checkbox" aria-label="Completar Pagar servicios" />
+              <div class="w2-title-block">
+                <div class="wtask-head">
+                  <span class="status-dot status-dot--overdue" aria-hidden></span>
+                  <p class="w2-title" style="margin:0;">Pagar servicios</p>
+                </div>
+                <p class="w2-sub">Incluir luz, gas e internet</p>
+                <div class="chip-row">
+                  <span class="chip">Hogar</span>
+                  <span class="chip chip--periodicity">Mensual</span>
+                  <span class="chip" style="background: color-mix(in srgb, var(--status-overdue) 12%, transparent); color: var(--status-overdue); border: 0;">2 días de atraso</span>
+                </div>
+                <p class="task-meta" style="margin-top:6px;">Última mod.: <span style="font-variant-numeric: tabular-nums;">06/05/2026 · 09:14</span></p>
+                <div class="wtask-actions">
+                  <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Pagar servicios">Editar</button>
+                  <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Pagar servicios">Posponer</button>
+                </div>
+              </div>
+            </div>
+            <div class="w2-row">
+              <input class="checkbox-m3" type="checkbox" aria-label="Completar Limpiar cocina" />
+              <div class="w2-title-block">
+                <div class="wtask-head">
+                  <span class="status-dot status-dot--upcoming" aria-hidden></span>
+                  <p class="w2-title" style="margin:0;">Limpiar cocina</p>
+                </div>
+                <p class="w2-sub">Encimera y piso</p>
+                <div class="chip-row">
+                  <span class="chip">Hogar</span>
+                  <span class="chip chip--periodicity">Diaria</span>
+                  <span class="chip" style="background: color-mix(in srgb, var(--status-upcoming) 12%, transparent); color: color-mix(in srgb, #885400 65%, black); border: 0;">Vence hoy</span>
+                </div>
+                <p class="task-meta" style="margin-top:6px;">Última mod.: <span style="font-variant-numeric: tabular-nums;">07/05/2026 · 08:02</span></p>
+                <div class="wtask-actions">
+                  <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Limpiar cocina">Editar</button>
+                  <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Limpiar cocina">Posponer</button>
+                </div>
+              </div>
+            </div>
+            <div class="w2-row">
+              <input class="checkbox-m3" type="checkbox" aria-label="Completar Ordenar armario" />
+              <div class="w2-title-block">
+                <div class="wtask-head">
+                  <span class="status-dot status-dot--ok" aria-hidden></span>
+                  <p class="w2-title" style="margin:0;">Ordenar armario</p>
+                </div>
+                <p class="w2-sub">Planchado y perchas</p>
+                <div class="chip-row">
+                  <span class="chip">Hogar</span>
+                  <span class="chip chip--periodicity">Semanal</span>
+                  <span class="chip" style="background: color-mix(in srgb, var(--status-ok) 14%, transparent); color: color-mix(in srgb, #146632 70%, black); border: 0;">Restan 3 días</span>
+                </div>
+                <p class="task-meta" style="margin-top:6px;">Última mod.: <span style="font-variant-numeric: tabular-nums;">05/05/2026 · 19:00</span></p>
+                <div class="wtask-actions">
+                  <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Ordenar armario">Editar</button>
+                  <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Ordenar armario">Posponer</button>
+                </div>
+              </div>
+            </div>
+            <div class="w2-row">
+              <input class="checkbox-m3" type="checkbox" aria-label="Completar Regar plantas" />
+              <div class="w2-title-block">
+                <div class="wtask-head">
+                  <span class="status-dot status-dot--ok" aria-hidden></span>
+                  <p class="w2-title" style="margin:0;">Regar plantas</p>
+                </div>
+                <p class="w2-sub">Salón y balcón</p>
+                <div class="chip-row">
+                  <span class="chip">Hogar</span>
+                  <span class="chip chip--periodicity">Diaria</span>
+                  <span class="chip" style="background: color-mix(in srgb, var(--status-ok) 14%, transparent); color: color-mix(in srgb, #146632 70%, black); border: 0;">A tiempo</span>
+                </div>
+                <p class="task-meta" style="margin-top:6px;">Última mod.: <span style="font-variant-numeric: tabular-nums;">07/05/2026 · 07:30</span></p>
+                <div class="wtask-actions">
+                  <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Regar plantas">Editar</button>
+                  <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Regar plantas">Posponer</button>
+                </div>
+              </div>
+            </div>
+            <div class="w2-row">
+              <input class="checkbox-m3" type="checkbox" aria-label="Completar Comprar pan" />
+              <div class="w2-title-block">
+                <div class="wtask-head">
+                  <span class="status-dot status-dot--upcoming" aria-hidden></span>
+                  <p class="w2-title" style="margin:0;">Comprar pan</p>
+                </div>
+                <p class="w2-sub">Panadería del barrio</p>
+                <div class="chip-row">
+                  <span class="chip">Hogar</span>
+                  <span class="chip chip--periodicity">Única</span>
+                  <span class="chip" style="background: color-mix(in srgb, var(--status-upcoming) 12%, transparent); color: color-mix(in srgb, #885400 65%, black); border: 0;">Esta tarde</span>
+                </div>
+                <p class="task-meta" style="margin-top:6px;">Última mod.: <span style="font-variant-numeric: tabular-nums;">—</span></p>
+                <div class="wtask-actions">
+                  <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Comprar pan">Editar</button>
+                  <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Comprar pan">Posponer</button>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+        </div>
+        <div class="widget-empty">
+          <div class="empty-illus" aria-hidden></div>
+          <p class="empty-title">¡Todo al día!</p>
+          <p class="task-meta" style="max-width:24ch;">No hay tareas para hoy.</p>
+        </div>
+      </section>
+        <div class="parchment-widget__roller parchment-widget__roller--bottom" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="app-widget__label">2×2 · varias tareas · scroll</p>
+      <div class="parchment-widget-wrap">
+        <div class="parchment-widget__roller parchment-widget__roller--top" aria-hidden="true"></div>
+        <section class="app-widget app-widget--2x2" data-od-id="widget-2x2" aria-label="Widget Bitácora mediano">
+        <div class="widget-bar">
+          <div class="widget-bar__titles">
+            <p class="widget-deck-line">Hoy</p>
+            <h2 class="widget-brush-title">Bitácora</h2>
+          </div>
+          <div class="widget-bar__actions">
+            <button type="button" class="widget-icon-btn" aria-label="Buscar">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+            <button type="button" class="widget-fab-mini" aria-label="Crear tarea rápida">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="widget-list">
+          <div class="widget-list-scroll widget-list-scroll--2x2">
+          <div class="wtask" data-od-id="w2-task-1">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Pagar servicios" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--overdue" aria-hidden></span>
+                <h3 class="wtask-title">Pagar servicios</h3>
+              </div>
+              <p class="wtask-sub">Incluir luz, gas e internet</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Mensual</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-overdue) 12%, transparent); color: var(--status-overdue); border: 0;">2 días de atraso</span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">06/05/2026 · 09:14</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Pagar servicios">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Pagar servicios">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="wtask" data-od-id="w2-task-2">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Limpiar cocina" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--upcoming" aria-hidden></span>
+                <h3 class="wtask-title">Limpiar cocina</h3>
+              </div>
+              <p class="wtask-sub">Encimera, piso y lavaplatos</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Diaria</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-upcoming) 12%, transparent); color: color-mix(in srgb, #885400 65%, black); border: 0;">Vence hoy · <span style="font-variant-numeric: tabular-nums;">14:00</span></span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">07/05/2026 · 08:02</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Limpiar cocina">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Limpiar cocina">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="wtask" data-od-id="w2-task-3">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Ordenar armario" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--ok" aria-hidden></span>
+                <h3 class="wtask-title">Ordenar armario</h3>
+              </div>
+              <p class="wtask-sub">Ropa y perchas</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Semanal</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-ok) 14%, transparent); color: color-mix(in srgb, #146632 70%, black); border: 0;">Restan 3 días</span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">05/05/2026 · 19:00</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Ordenar armario">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Ordenar armario">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="wtask" data-od-id="w2-task-4">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Regar plantas" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--ok" aria-hidden></span>
+                <h3 class="wtask-title">Regar plantas</h3>
+              </div>
+              <p class="wtask-sub">Salón y balcón</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Diaria</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-ok) 14%, transparent); color: color-mix(in srgb, #146632 70%, black); border: 0;">A tiempo</span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">07/05/2026 · 07:30</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Regar plantas">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Regar plantas">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="wtask" data-od-id="w2-task-5">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Llamar al dentista" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--upcoming" aria-hidden></span>
+                <h3 class="wtask-title">Llamar al dentista</h3>
+              </div>
+              <p class="wtask-sub">Pedir turno revisión</p>
+              <div class="chip-row">
+                <span class="chip">Salud</span>
+                <span class="chip chip--periodicity">Única</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-upcoming) 12%, transparent); color: color-mix(in srgb, #885400 65%, black); border: 0;">Esta semana</span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">—</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Llamar al dentista">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Llamar al dentista">Posponer</button>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+        <div class="widget-empty">
+          <div class="empty-illus" aria-hidden></div>
+          <p class="empty-title">¡Todo al día!</p>
+          <p class="task-meta" style="max-width:28ch;">No hay tareas para hoy.</p>
+        </div>
+      </section>
+        <div class="parchment-widget__roller parchment-widget__roller--bottom" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="app-widget__label">4×2 · lista alineada con pantalla Hoy (varias tareas, scroll)</p>
+      <div class="parchment-widget-wrap">
+        <div class="parchment-widget__roller parchment-widget__roller--top" aria-hidden="true"></div>
+        <section class="app-widget app-widget--4x2" data-od-id="widget-4x2" aria-label="Widget Bitácora amplio">
+        <div class="widget-bar">
+          <div class="widget-bar__titles">
+            <p class="widget-deck-line">Hoy</p>
+            <h2 class="widget-brush-title">Bitácora</h2>
+          </div>
+          <div class="widget-bar__actions">
+            <button type="button" class="widget-icon-btn" aria-label="Buscar">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+            <button type="button" class="widget-fab-mini" aria-label="Crear tarea rápida">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="widget-list">
+          <div class="widget-list-scroll widget-list-scroll--4x2">
+          <div class="wtask" data-od-id="w4-task-1">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Pagar servicios" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--overdue" aria-hidden></span>
+                <h3 class="wtask-title">Pagar servicios</h3>
+              </div>
+              <p class="wtask-sub">Incluir luz, gas e internet</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Mensual</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-overdue) 12%, transparent); color: var(--status-overdue); border: 0;">2 días de atraso</span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">06/05/2026 · 09:14</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Pagar servicios">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Pagar servicios">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="wtask" data-od-id="w4-task-2">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Limpiar cocina" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--upcoming" aria-hidden></span>
+                <h3 class="wtask-title">Limpiar cocina</h3>
+              </div>
+              <p class="wtask-sub">Encimera, piso y lavaplatos</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Diaria</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-upcoming) 12%, transparent); color: color-mix(in srgb, #885400 65%, black); border: 0;">Vence hoy · <span style="font-variant-numeric: tabular-nums;">14:00</span></span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">07/05/2026 · 08:02</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Limpiar cocina">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Limpiar cocina">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="wtask" data-od-id="w4-task-3">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Revisar mail" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--ok" aria-hidden></span>
+                <h3 class="wtask-title">Revisar mail</h3>
+              </div>
+              <p class="wtask-sub">Bandeja principal y carpeta “Importante”</p>
+              <div class="chip-row">
+                <span class="chip">Trabajo</span>
+                <span class="chip chip--periodicity">Diaria</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-ok) 14%, transparent); color: color-mix(in srgb, #146632 70%, black); border: 0;">A tiempo · restan 4 días</span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">06/05/2026 · 22:41</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Revisar mail">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Revisar mail">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="wtask" data-od-id="w4-task-4">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Ordenar armario" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--ok" aria-hidden></span>
+                <h3 class="wtask-title">Ordenar armario</h3>
+              </div>
+              <p class="wtask-sub">Ropa y perchas</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Semanal</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-ok) 14%, transparent); color: color-mix(in srgb, #146632 70%, black); border: 0;">Restan 3 días</span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">05/05/2026 · 19:00</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Ordenar armario">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Ordenar armario">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="wtask" data-od-id="w4-task-5">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Regar plantas" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--ok" aria-hidden></span>
+                <h3 class="wtask-title">Regar plantas</h3>
+              </div>
+              <p class="wtask-sub">Salón y balcón</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Diaria</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-ok) 14%, transparent); color: color-mix(in srgb, #146632 70%, black); border: 0;">A tiempo</span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">07/05/2026 · 07:30</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Regar plantas">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Regar plantas">Posponer</button>
+              </div>
+            </div>
+          </div>
+          <div class="wtask" data-od-id="w4-task-6">
+            <input class="checkbox-m3" type="checkbox" aria-label="Completar Sacar basura" />
+            <div>
+              <div class="wtask-head">
+                <span class="status-dot status-dot--overdue" aria-hidden></span>
+                <h3 class="wtask-title">Sacar basura</h3>
+              </div>
+              <p class="wtask-sub">Contenedor verde · noche</p>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Semanal</span>
+                <span class="chip" style="background: color-mix(in srgb, var(--status-overdue) 12%, transparent); color: var(--status-overdue); border: 0;">Atrasada 1 día</span>
+              </div>
+              <p class="wtask-meta">Última modificación: <span style="font-variant-numeric: tabular-nums;">06/05/2026 · 21:10</span></p>
+              <div class="wtask-actions">
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Editar subtítulo · Sacar basura">Editar</button>
+                <button type="button" class="btn-text-m3 btn-text-m3--widget" aria-label="Posponer Sacar basura">Posponer</button>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+        <div class="widget-empty">
+          <div class="empty-illus" aria-hidden></div>
+          <p class="empty-title">¡Todo al día!</p>
+          <p class="task-meta" style="max-width:32ch;">No hay tareas para hoy. Abrí la app para crear una.</p>
+        </div>
+      </section>
+        <div class="parchment-widget__roller parchment-widget__roller--bottom" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

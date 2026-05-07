@@ -10,6 +10,7 @@ data class Tarea(
     val diasPeriodicidad: Int?,
     val notas: String,
     val fechaCreacion: LocalDateTime,
+    val fechaUltimaModificacion: LocalDateTime = fechaCreacion,
     val fechaProximaEjecucion: LocalDateTime?,
     val cantidadPostergaciones: Int,
     val estadoAlerta: EstadoAlerta,

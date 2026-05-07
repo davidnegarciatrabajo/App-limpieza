@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tareas Diarias · Galería (7 pantallas + widgets)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Roboto', system-ui, sans-serif;
+      background: #e2d6c4;
+      color: #2a2620;
+      padding: 24px 20px 60px;
+    }
+    header { max-width: 1400px; margin: 0 auto 20px; }
+    h1 { font-size: 22px; font-weight: 500; margin: 0 0 8px; }
+    .lede { margin: 0 0 6px; color: #5c5548; max-width: 72ch; line-height: 1.55; font-size: 14px; }
+    .tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #5d4037; font-weight: 600; margin-bottom: 10px; }
+    .rail {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      align-items: flex-start;
+      padding-bottom: 12px;
+      scroll-snap-type: x mandatory;
+    }
+    .shot {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .shot figcaption {
+      font-size: 12px;
+      color: #5c5548;
+      max-width: 412px;
+      line-height: 1.4;
+      font-variant-numeric: tabular-nums;
+    }
+    iframe {
+      border: 0;
+      width: 412px;
+      height: 900px;
+      border-radius: 52px;
+      background: transparent;
+    }
+    iframe.shot-iframe--widget {
+      width: min(100%, 760px);
+      height: 720px;
+      border-radius: 16px;
+      border: 1px solid color-mix(in srgb, #8a806e 35%, transparent);
+      background: var(--md-sys-color-surface-container-lowest, #faf6eb);
+    }
+    .aside {
+      max-width: 1400px;
+      margin: 24px auto 0;
+      font-size: 13px;
+      color: #5c5548;
+      line-height: 1.5;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" />
+</head>
+<body>
+  <header>
+    <p class="tag">Prototipo · Material 3 · Android Pixel</p>
+    <h1>Tareas Diarias · 7 pantallas + widgets</h1>
+    <p class="lede">Marcos en <strong>frames/android-pixel.html</strong>; cada pantalla vive en <strong>screens/*.html</strong>. Los <strong>widgets</strong> en <strong>screens/08-widget-hoy.html</strong>: lista con <strong>scroll vertical</strong> cuando hay muchas tareas; las completadas pasan <strong>abajo del todo</strong> (orden flex + tachado). Título <strong>Bitácora</strong> · pergamino. View Transitions: mejor en pestaña nueva.</p>
+  </header>
+  <figure class="rail">
+    <div class="shot">
+      <iframe title="Pantalla 1 · Hoy" loading="lazy" src="frames/android-pixel.html?screen=../screens/01-hoy.html"></iframe>
+      <figcaption>P1 · Hoy · categoría + periodicidad + estado · subtítulo · Editar + Posponer · FAB · vacío (toggle demo)</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 2 · Menú" loading="lazy" src="frames/android-pixel.html?screen=../screens/02-menu.html"></iframe>
+      <figcaption>P2 · Menú · resumen con marcadores honestos (“—”) y tarjetas grandes</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 3 · Tareas" loading="lazy" src="frames/android-pixel.html?screen=../screens/03-tareas.html"></iframe>
+      <figcaption>P3 · Tareas · chips categoría + periodicidad · top horizontal · filtros · FAB · ordenar</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 4 · Nueva tarea" loading="lazy" src="frames/android-pixel.html?screen=../screens/04-nueva-tarea.html"></iframe>
+      <figcaption>P4 · Alta · subtítulo + fecha de inicio · validación · diálogo categoría · snackbar demo al guardar</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 5 · Editar tarea" loading="lazy" src="frames/android-pixel.html?screen=../screens/05-editar-tarea.html"></iframe>
+      <figcaption>P5 · Editar · subtítulo + fecha inicio · última modificación · descarte al atrás</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 6 · Categorías" loading="lazy" src="frames/android-pixel.html?screen=../screens/06-categorias.html"></iframe>
+      <figcaption>P6 · Categorías · pistas swipe · FAB · bottom sheet de edición pegado</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 7 · Búsqueda" loading="lazy" src="frames/android-pixel.html?screen=../screens/07-busqueda.html"></iframe>
+      <figcaption>P7 · Búsqueda · resultados con categoría + periodicidad · filtros · vacío demo</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Demo transición lista→detalle" loading="lazy" src="frames/android-pixel.html?screen=../screens/demo-transiciones.html"></iframe>
+      <figcaption>Extra · mismo documento: transición elemento compartido (solo si el navegador soporta View Transitions)</figcaption>
+    </div>
+    <div class="shot">
+      <iframe class="shot-iframe--widget" title="Widgets · Bitácora · pergamino" loading="lazy" src="screens/08-widget-hoy.html"></iframe>
+      <figcaption>Widgets · <strong>Bitácora</strong> · scroll en lista · completadas abajo · 2×1 / 2×2 / 4×2 · demo vacío</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pergamino · Bitácora" loading="lazy" src="frames/android-pixel.html?screen=../screens/09-pergamino-rpg.html"></iframe>
+      <figcaption>Extra · pergamino <strong>Bitácora</strong> · español · rollos + checklist (no Material 3)</figcaption>
+    </div>
+  </figure>
+  <p class="aside">Colores de estado · vencida <code>#E54D42</code> · próxima <code>#F5A623</code> · ok <code>#27AE60</code>. Ábrase <a href="screens/demo-transiciones.html">demo-transiciones.html</a> sin marco si el efecto está recortado en el iframe. Widgets pergamino: <a href="screens/08-widget-hoy.html">08-widget-hoy.html</a>. Pergamino pantalla completa: <a href="screens/09-pergamino-rpg.html">09-pergamino-rpg.html</a>.</p>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="view-transition" content="same-origin" />
+  <title>Editar tarea · Tareas Diarias</title>
+  <link rel="stylesheet" href="m3-shared.css" />
+  <style>@view-transition { navigation: auto; }</style>
+</head>
+<body>
+  <div class="app app--no-nav" data-od-id="screen-shell">
+    <header class="top-app-bar" data-od-id="top-bar">
+      <button type="button" class="icon-btn" id="btn-back" aria-label="Volver">
+        <svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>
+      </button>
+      <h1 class="top-app-bar__title task-title" style="padding-inline-start:4px;">Pagar servicios</h1>
+    </header>
+
+    <p class="task-meta" style="padding:0 20px 4px;margin:0;" data-od-id="last-mod">Última modificación: <span style="font-variant-numeric: tabular-nums;">05/05/2026</span></p>
+
+    <div class="scroll" data-od-id="form-body" style="padding-bottom:120px;">
+      <div class="field" style="padding-top:8px;">
+        <label for="nombre">Nombre</label>
+        <input id="nombre" class="input-m3" type="text" value="Pagar servicios" />
+      </div>
+      <div class="field">
+        <label for="subtitulo">Subtítulo</label>
+        <input id="subtitulo" class="input-m3" type="text" value="Incluir luz, gas e internet" data-od-id="field-subtitulo" />
+        <p class="field-hint">Visible en <strong>Hoy</strong> bajo el título.</p>
+      </div>
+      <div class="field">
+        <label for="fecha-inicio">Fecha de inicio</label>
+        <input id="fecha-inicio" class="input-m3" type="date" value="2026-04-01" data-od-id="field-fecha-inicio" />
+        <p class="field-hint">Comienzo del ciclo para esta tarea.</p>
+      </div>
+      <div class="field">
+        <label for="categoria">Categoría</label>
+        <select id="categoria" class="select-m3">
+          <option>Hogar</option>
+          <option>Trabajo</option>
+          <option>Salud</option>
+        </select>
+      </div>
+      <div class="field">
+        <span id="lbl-per">Periodicidad</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="lbl-per" style="margin-top:8px;">
+          <label><input type="radio" name="per" /> Diaria</label>
+          <label><input type="radio" name="per" /> Semanal</label>
+          <label><input type="radio" name="per" checked /> Mensual</label>
+          <label><input type="radio" name="per" /> Semestral</label>
+          <label><input type="radio" name="per" /> Personalizada</label>
+          <label><input type="radio" name="per" /> Única</label>
+        </div>
+      </div>
+      <div class="field">
+        <label for="custom-dias">Si es personalizada, indicá cada cuántos días</label>
+        <input id="custom-dias" class="input-m3" type="number" placeholder="—" inputmode="numeric" />
+      </div>
+      <div class="field">
+        <label for="notas">Notas (opcional)</label>
+        <textarea id="notas" class="textarea-m3" placeholder="—"></textarea>
+      </div>
+
+      <div style="padding:24px 16px 120px;display:flex;flex-direction:column;gap:12px;">
+        <button type="button" class="btn-filled">Guardar cambios</button>
+        <button type="button" class="btn-outlined" onclick="history.back()">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="scrim" id="scrim-discard" data-od-id="discard-dialog" style="display:none;">
+      <div class="dialog-m3" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+        <h2 id="dlg-title">¿Descartar cambios?</h2>
+        <p>Perderás las ediciones que no guardaste en esta pantalla.</p>
+        <div class="dialog-actions">
+          <button type="button" class="btn-outlined" style="width:auto;min-height:44px;border-radius:20px;" id="btn-keep">Seguir editando</button>
+          <button type="button" class="btn-filled" style="width:auto;min-height:44px;border-radius:20px;background:var(--status-overdue);" id="btn-discard">Descartar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var dirty = true;
+      var scrim = document.getElementById('scrim-discard');
+      document.getElementById('btn-back')?.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (!dirty) { history.back(); return; }
+        scrim.style.display = 'grid';
+      });
+      document.getElementById('btn-keep')?.addEventListener('click', function () {
+        scrim.style.display = 'none';
+      });
+      document.getElementById('btn-discard')?.addEventListener('click', function () {
+        history.back();
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="view-transition" content="same-origin" />
+  <title>Tareas · Tareas Diarias</title>
+  <link rel="stylesheet" href="m3-shared.css" />
+  <style>
+    @view-transition { navigation: auto; }
+  </style>
+</head>
+<body>
+  <div class="shell" data-od-id="screen-shell">
+    <div class="app">
+      <header class="top-app-bar" data-od-id="top-bar">
+        <h1 class="top-app-bar__title" style="flex:1;min-width:0;">Tareas</h1>
+        <div class="row-icons" style="display:flex;align-items:center;">
+          <button type="button" class="icon-btn" aria-label="Búsqueda avanzada" onclick="location.href='07-busqueda.html'">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+        <div style="position:relative;">
+          <button type="button" class="icon-btn" id="sort-btn" aria-haspopup="true" aria-expanded="false" aria-label="Ordenar">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+          </button>
+          <div id="sort-menu" role="menu" hidden style="position:absolute;right:0;top:48px;background:var(--md-sys-color-surface-container-lowest);border-radius:12px;border:1px solid var(--md-sys-color-outline-variant);box-shadow:var(--elevation-1);min-width:200px;padding:8px 0;z-index:10;">
+            <button type="button" role="menuitem" class="icon-btn" style="width:100%;border-radius:0;justify-content:flex-start;padding-inline:16px;font-size:14px;color:var(--md-sys-color-on-surface);">Mayor delay</button>
+            <button type="button" role="menuitem" class="icon-btn" style="width:100%;border-radius:0;justify-content:flex-start;padding-inline:16px;font-size:14px;color:var(--md-sys-color-on-surface);">Más antigua</button>
+          </div>
+        </div>
+        </div>
+      </header>
+
+      <div class="scroll" data-od-id="content">
+        <p class="section-title">Top 10 pendientes</p>
+        <div class="h-scroll" data-od-id="top-scroll">
+          <div class="mini-card">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="status-dot status-dot--overdue"></span>
+              <span class="task-title" style="font-size:16px;margin:0;">Pagar servicios</span>
+            </div>
+            <p class="task-meta">Hogar · atrasada</p>
+          </div>
+          <div class="mini-card">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="status-dot status-dot--upcoming"></span>
+              <span class="task-title" style="font-size:16px;margin:0;">Revisión semanal equipo</span>
+            </div>
+            <p class="task-meta">Trabajo · semanal · hoy</p>
+          </div>
+          <div class="mini-card">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span class="status-dot status-dot--ok"></span>
+              <span class="task-title" style="font-size:16px;margin:0;">Hacer deporte</span>
+            </div>
+            <p class="task-meta">Salud · única · restan 3</p>
+          </div>
+        </div>
+
+        <div class="chip-row pad" style="padding:4px 16px 12px;margin:0;flex-wrap:wrap;" data-od-id="filters">
+          <span class="chip chip--selected">Todas</span>
+          <span class="chip">Diarias</span>
+          <span class="chip">Semanales</span>
+          <span class="chip">Mensuales</span>
+          <span class="chip">Semestrales</span>
+          <span class="chip">Únicas</span>
+        </div>
+
+        <div data-od-id="lista">
+          <a href="05-editar-tarea.html" class="task-row" style="text-decoration:none;color:inherit;display:grid;">
+            <span class="status-dot status-dot--overdue" aria-hidden style="margin-top:10px;"></span>
+            <div>
+              <h2 class="task-title">Pagar servicios</h2>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Mensual</span>
+              </div>
+              <p class="task-meta">2 días de atraso</p>
+            </div>
+          </a>
+          <a href="05-editar-tarea.html" class="task-row" style="text-decoration:none;color:inherit;display:grid;">
+            <span class="status-dot status-dot--upcoming" style="margin-top:10px;"></span>
+            <div>
+              <h2 class="task-title">Limpiar cocina</h2>
+              <div class="chip-row">
+                <span class="chip">Hogar</span>
+                <span class="chip chip--periodicity">Diaria</span>
+              </div>
+              <p class="task-meta">Vence hoy</p>
+            </div>
+          </a>
+          <a href="05-editar-tarea.html" class="task-row" style="text-decoration:none;color:inherit;display:grid;">
+            <span class="status-dot status-dot--ok" style="margin-top:10px;"></span>
+            <div>
+              <h2 class="task-title">Revisar mail</h2>
+              <div class="chip-row">
+                <span class="chip">Trabajo</span>
+                <span class="chip chip--periodicity">Diaria</span>
+              </div>
+              <p class="task-meta">A tiempo · restan 4</p>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <a href="04-nueva-tarea.html" class="fab" aria-label="Crear tarea">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </a>
+
+      <nav class="bottom-nav" aria-label="Navegación principal">
+        <a class="bottom-nav__item" href="01-hoy.html">
+          <svg viewBox="0 0 24 24"><path d="M3 12 12 3l9 9"/><path d="M5 10v10h14V10"/></svg>
+          Hoy
+        </a>
+        <span class="bottom-nav__item bottom-nav__item--active" aria-current="page">
+          <svg viewBox="0 0 24 24"><path d="M9 11H5a2 2 0 0 0-2 2v7h6v-9zM19 9h-4a2 2 0 0 0-2 2v9h6V11a2 2 0 0 0-2-2z"/><path d="M12 2 3 7v2h18V7l-9-5z"/></svg>
+          Tareas
+        </span>
+        <a class="bottom-nav__item" href="06-categorias.html">
+          <svg viewBox="0 0 24 24"><path d="M4 6h7v7H4zM13 6h7v4h-7zM13 12h7v6h-7zM4 15h7v3H4z"/></svg>
+          Categorías
+        </a>
+        <a class="bottom-nav__item" href="02-menu.html">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          Menú
+        </a>
+      </nav>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var b = document.getElementById('sort-btn');
+      var m = document.getElementById('sort-menu');
+      if (!b || !m) return;
+      b.addEventListener('click', function (e) {
+        e.preventDefault();
+        var o = !m.hidden;
+        m.hidden = o;
+        b.setAttribute('aria-expanded', (!o).toString());
+      });
+      document.addEventListener('click', function (e) {
+        if (!m.hidden && !m.contains(e.target) && e.target !== b) {
+          m.hidden = true;
+          b.setAttribute('aria-expanded', 'false');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

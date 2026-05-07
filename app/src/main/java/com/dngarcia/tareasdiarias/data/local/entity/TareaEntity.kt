@@ -24,6 +24,7 @@ import java.time.LocalDateTime
         Index(value = ["nombre"], unique = true),
         Index(value = ["categoria_id"]),
         Index(value = ["fecha_proxima_ejecucion"]),
+        Index(value = ["fecha_ultima_modificacion"]),
         Index(value = ["tipo_periodicidad"]),
     ],
 )
@@ -42,6 +43,8 @@ data class TareaEntity(
     val notas: String,
     @ColumnInfo(name = "fecha_creacion")
     val fechaCreacion: LocalDateTime,
+    @ColumnInfo(name = "fecha_ultima_modificacion")
+    val fechaUltimaModificacion: LocalDateTime = fechaCreacion,
     @ColumnInfo(name = "fecha_proxima_ejecucion")
     val fechaProximaEjecucion: LocalDateTime?,
     @ColumnInfo(name = "cantidad_postergaciones")

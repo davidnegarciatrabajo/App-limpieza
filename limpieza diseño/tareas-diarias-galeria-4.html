@@ -1,0 +1,180 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tareas Diarias · Galería (7 pantallas + widgets)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Roboto', system-ui, sans-serif;
+      background: #eceef2;
+      color: #1b1b1f;
+      padding: 24px 20px 60px;
+    }
+    header { max-width: 1400px; margin: 0 auto 20px; }
+    h1 { font-size: 22px; font-weight: 500; margin: 0 0 8px; }
+    .lede { margin: 0 0 6px; color: #45454f; max-width: 72ch; line-height: 1.55; font-size: 14px; }
+    .tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #5e6ad2; font-weight: 600; margin-bottom: 10px; }
+    .rail {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      align-items: flex-start;
+      padding-bottom: 12px;
+      scroll-snap-type: x mandatory;
+    }
+    .shot {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .shot figcaption {
+      font-size: 12px;
+      color: #46464f;
+      max-width: 412px;
+      line-height: 1.4;
+      font-variant-numeric: tabular-nums;
+    }
+    iframe {
+      border: 0;
+      width: 412px;
+      height: 900px;
+      border-radius: 52px;
+      background: transparent;
+    }
+    iframe.shot-iframe--widget {
+      width: min(100%, 760px);
+      height: 720px;
+      border-radius: 16px;
+      border: 1px solid color-mix(in srgb, #767680 35%, transparent);
+      background: var(--md-sys-color-surface-container-lowest, #fff);
+    }
+    .aside {
+      max-width: 1400px;
+      margin: 24px auto 0;
+      font-size: 13px;
+      color: #46464f;
+      line-height: 1.5;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" />
+</head>
+<body>
+  <header>
+    <p class="tag">Prototipo · Material 3 · Android Pixel</p>
+    <h1>Tareas Diarias · 7 pantallas + widgets</h1>
+    <p class="lede">Marcos en <strong>frames/android-pixel.html</strong>; cada pantalla vive en <strong>screens/*.html</strong>. Los <strong>widgets “Hoy”</strong> están en <strong>screens/08-widget-hoy.html</strong> (launcher simulado, sin marco Pixel). Transición lista→detalle (View Transitions) funciona mejor al abrir páginas en pestaña nueva; dentro del iframe navegadores suelen aislar vistas.</p>
+  </header>
+  <figure class="rail">
+    <div class="shot">
+      <iframe title="Pantalla 1 · Hoy" loading="lazy" src="frames/android-pixel.html?screen=../screens/01-hoy.html"></iframe>
+      <figcaption>P1 · Hoy · subtítulo · Editar + Posponer · FAB · bottom nav · vacío (toggle demo)</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 2 · Menú" loading="lazy" src="frames/android-pixel.html?screen=../screens/02-menu.html"></iframe>
+      <figcaption>P2 · Menú · resumen con marcadores honestos (“—”) y tarjetas grandes</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 3 · Tareas" loading="lazy" src="frames/android-pixel.html?screen=../screens/03-tareas.html"></iframe>
+      <figcaption>P3 · Tareas · top horizontal · filtros tipo chip · FAB · ordenar (menú)</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 4 · Nueva tarea" loading="lazy" src="frames/android-pixel.html?screen=../screens/04-nueva-tarea.html"></iframe>
+      <figcaption>P4 · Alta · subtítulo
+Quedó armado el prototipo de **widgets “Hoy”** en `screens/08-widget-hoy.html`: fondo tipo launcher y **tres tamaños** (2×1, 2×2, 4×2) con la misma lógica visual que la pantalla principal — barra con título **Hoy**, **buscar** y **+**, puntos de estado (#E54D42 / #F5A623 / #27AE60), nombre, subtítulo, chips de categoría y plazo, última modificación, **Editar** / **Posponer** y checkbox donde entra. El **2×1** condensa la primera tarea + resumen “3 pendientes…”; el **4×2** repite las **tres** tareas del mock de Hoy. Hay un toggle arriba para ver el **vacío** “¡Todo al día!” en los tres. La galería `index.html` incluye un iframe ancho al final para previsualizarlo.
+
+<artifact identifier="tareas-diarias-galeria" type="text/html" title="Tareas Diarias · Galería">
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tareas Diarias · Galería (7 pantallas + widgets)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Roboto', system-ui, sans-serif;
+      background: #eceef2;
+      color: #1b1b1f;
+      padding: 24px 20px 60px;
+    }
+    header { max-width: 1400px; margin: 0 auto 20px; }
+    h1 { font-size: 22px; font-weight: 500; margin: 0 0 8px; }
+    .lede { margin: 0 0 6px; color: #45454f; max-width: 72ch; line-height: 1.55; font-size: 14px; }
+    .tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #5e6ad2; font-weight: 600; margin-bottom: 10px; }
+    .rail {
+      display: flex;
+      gap: 18px;
+      overflow-x: auto;
+      align-items: flex-start;
+      padding-bottom: 12px;
+      scroll-snap-type: x mandatory;
+    }
+    .shot {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .shot figcaption {
+      font-size: 12px;
+      color: #46464f;
+      max-width: 412px;
+      line-height: 1.4;
+      font-variant-numeric: tabular-nums;
+    }
+    iframe {
+      border: 0;
+      width: 412px;
+      height: 900px;
+      border-radius: 52px;
+      background: transparent;
+    }
+    iframe.shot-iframe--widget {
+      width: min(100%, 760px);
+      height: 720px;
+      border-radius: 16px;
+      border: 1px solid color-mix(in srgb, #767680 35%, transparent);
+      background: var(--md-sys-color-surface-container-lowest, #fff);
+    }
+    .aside {
+      max-width: 1400px;
+      margin: 24px auto 0;
+      font-size: 13px;
+      color: #46464f;
+      line-height: 1.5;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" />
+</head>
+<body>
+  <header>
+    <p class="tag">Prototipo · Material 3 · Android Pixel</p>
+    <h1>Tareas Diarias · 7 pantallas + widgets</h1>
+    <p class="lede">Marcos en <strong>frames/android-pixel.html</strong>; cada pantalla vive en <strong>screens/*.html</strong>. Los <strong>widgets “Hoy”</strong> están en <strong>screens/08-widget-hoy.html</strong> (launcher simulado, sin marco Pixel). Transición lista→detalle (View Transitions) funciona mejor al abrir páginas en pestaña nueva; dentro del iframe navegadores suelen aislar vistas.</p>
+  </header>
+  <figure class="rail">
+    <div class="shot">
+      <iframe title="Pantalla 1 · Hoy" loading="lazy" src="frames/android-pixel.html?screen=../screens/01-hoy.html"></iframe>
+      <figcaption>P1 · Hoy · subtítulo · Editar + Posponer · FAB · bottom nav · vacío (toggle demo)</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 2 · Menú" loading="lazy" src="frames/android-pixel.html?screen=../screens/02-menu.html"></iframe>
+      <figcaption>P2 · Menú · resumen con marcadores honestos (“—”) y tarjetas grandes</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 3 · Tareas" loading="lazy" src="frames/android-pixel.html?screen=../screens/03-tareas.html"></iframe>
+      <figcaption>P3 · Tareas · top horizontal · filtros tipo chip · FAB · ordenar (menú)</figcaption>
+    </div>
+    <div class="shot">
+      <iframe title="Pantalla 4 · Nueva tarea" loading="lazy" src="frames/android-pixel.html?screen=../screens/04-nueva-tarea.html"></iframe>
+      <figcaption>P4 · Alta · subtítulo

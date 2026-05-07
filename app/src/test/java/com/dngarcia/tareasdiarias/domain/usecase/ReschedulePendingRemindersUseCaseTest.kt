@@ -3,6 +3,9 @@ package com.dngarcia.tareasdiarias.domain.usecase
 import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
+import com.dngarcia.tareasdiarias.domain.model.TaskPeriodicityFilter
+import com.dngarcia.tareasdiarias.domain.model.TaskSortOrder
+import com.dngarcia.tareasdiarias.domain.model.TaskAdvancedFilters
 import com.dngarcia.tareasdiarias.domain.model.Tarea
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
 import com.dngarcia.tareasdiarias.domain.repository.TaskReminderScheduler
@@ -29,6 +32,7 @@ class ReschedulePendingRemindersUseCaseTest {
 
         assertEquals(2, fakeScheduler.scheduledReminders.size)
         assertEquals("Regar plantas", fakeScheduler.scheduledReminders.first().taskTitle)
+        assertEquals(false, fakeScheduler.scheduledReminders.first().requiresExactScheduling)
     }
 
     private fun sampleTask(id: Long, nombre: String, reminderAt: LocalDateTime): Tarea {
@@ -51,6 +55,14 @@ class ReschedulePendingRemindersUseCaseTest {
         private val pendingTasks: List<Tarea>,
     ) : TareaRepository {
         override fun observeAll(): Flow<List<Tarea>> = emptyFlow()
+        override fun observeTopPending(limit: Int): Flow<List<Tarea>> = emptyFlow()
+        override fun observePendingByFilterAndSort(
+            filter: TaskPeriodicityFilter,
+            sortOrder: TaskSortOrder,
+            searchQuery: String,
+            includeNotesInSearch: Boolean,
+            advancedFilters: TaskAdvancedFilters,
+        ): Flow<List<Tarea>> = emptyFlow()
         override suspend fun getPendingReminderTasks(): List<Tarea> = pendingTasks
         override suspend fun getById(id: Long): Tarea? = null
         override suspend fun create(tarea: Tarea): Long = 0L

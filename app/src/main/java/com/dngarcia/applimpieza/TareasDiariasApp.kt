@@ -1,11 +1,17 @@
 package com.dngarcia.tareasdiarias
 
 import android.app.Application
+import android.util.Log
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.dngarcia.tareasdiarias.data.notification.ReminderNotificationManager
+import com.dngarcia.tareasdiarias.domain.usecase.SeedDebugSampleDataIfNeededUseCase
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 @HiltAndroidApp
 class TareasDiariasApp : Application(), Configuration.Provider {
@@ -15,6 +21,11 @@ class TareasDiariasApp : Application(), Configuration.Provider {
     @Inject
     lateinit var reminderNotificationManager: ReminderNotificationManager
 
+    @Inject
+    lateinit var seedDebugSampleDataIfNeeded: SeedDebugSampleDataIfNeededUseCase
+
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -23,5 +34,13 @@ class TareasDiariasApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         reminderNotificationManager.createChannel()
+        applicationScope.launch {
+            runCatching { seedDebugSampleDataIfNeeded() }
+                .onFailure { Log.e(TAG, "No se pudo ejecutar el seed de datos de debug.", it) }
+        }
+    }
+
+    private companion object {
+        private const val TAG = "TareasDiariasApp"
     }
 }

@@ -1,8 +1,13 @@
 package com.dngarcia.tareasdiarias.data.notification
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.dngarcia.tareasdiarias.R
@@ -30,6 +35,15 @@ class ReminderNotificationManager @Inject constructor(
         taskId: Long,
         taskTitle: String,
     ) {
+        if (!notificationManagerCompat.areNotificationsEnabled()) {
+            Log.w(TAG, "Notificacion omitida: canal/bloqueo del sistema. taskId=$taskId")
+            return
+        }
+        if (!hasNotificationPermission()) {
+            Log.w(TAG, "Notificacion omitida: permiso POST_NOTIFICATIONS denegado. taskId=$taskId")
+            return
+        }
+
         val notification = NotificationCompat.Builder(context, REMINDER_CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(context.getString(R.string.reminder_notification_title))
@@ -46,7 +60,16 @@ class ReminderNotificationManager @Inject constructor(
         notificationManagerCompat.notify(taskId.toInt(), notification)
     }
 
+    private fun hasNotificationPermission(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
     companion object {
         const val REMINDER_CHANNEL_ID: String = "task_reminders"
+        private const val TAG: String = "ReminderNotification"
     }
 }

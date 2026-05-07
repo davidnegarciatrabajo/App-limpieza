@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.dngarcia.tareasdiarias.presentation.navigation.AppNavHost
+import com.dngarcia.tareasdiarias.presentation.navigation.AppNavigation
 import com.dngarcia.tareasdiarias.ui.theme.AppLimpiezaTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -15,8 +15,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppLimpiezaTheme {
-                AppNavHost()
+                AppNavigation()
             }
         }
     }
-}
+} 

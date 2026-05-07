@@ -171,6 +171,10 @@ Relaciones:
 - AlarmManager como fallback puntual para alarmas exactas.
 - Coroutines + Flow: asincronia y reactividad nativas de Kotlin.
 - Testing: JUnit, MockK y Compose UI Test para cubrir negocio, datos y UI.
+- Fase 8 - Busqueda simple: alcance sobre `nombre` + `notas` para mejorar descubrimiento sin duplicar UX.
+- Fase 8 - Combinacion de filtros: estrategia AND entre periodicidad, texto y filtros avanzados para resultados predecibles.
+- Fase 8 - Debounce de busqueda: 300 ms para reducir carga de queries reactivas y mantener sensacion de tiempo real.
+- Fase 8 - Indices de soporte: `nombre`, `categoria_id`, `fecha_proxima_ejecucion` y `fecha_ultima_modificacion`.
 
 ## 8. Riesgos tecnicos y mitigaciones
 - Restricciones de bateria/Doze: usar WorkManager y fallback con alarmas exactas para casos criticos.

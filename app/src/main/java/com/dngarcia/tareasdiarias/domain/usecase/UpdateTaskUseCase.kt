@@ -3,16 +3,19 @@ package com.dngarcia.tareasdiarias.domain.usecase
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.model.Tarea
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
-import javax.inject.Inject
 import java.time.LocalDateTime
+import java.time.LocalTime
+import javax.inject.Inject
 
 data class UpdateTaskParams(
     val taskId: Long,
     val nombre: String,
+    val subtitulo: String = "",
     val categoriaId: Long,
     val notas: String,
     val diasPeriodicidad: Int?,
     val periodicidad: com.dngarcia.tareasdiarias.domain.model.Periodicidad,
+    val horaRecordatorio: LocalTime?,
 )
 
 class UpdateTaskUseCase @Inject constructor(
@@ -27,6 +30,7 @@ class UpdateTaskUseCase @Inject constructor(
             periodicidad = params.periodicidad,
             diasPeriodicidad = params.diasPeriodicidad,
             baseDateTime = now,
+            horaRecordatorio = params.horaRecordatorio,
         )
         val shouldIncrementPostponements = PostponementPolicy.shouldIncrement(
             currentDueDate = currentTask.fechaProximaEjecucion,
@@ -35,12 +39,14 @@ class UpdateTaskUseCase @Inject constructor(
 
         val updatedTask = currentTask.copy(
             nombre = params.nombre.trim(),
+            subtitulo = params.subtitulo.trim(),
             categoriaId = params.categoriaId,
             notas = params.notas.trim(),
             tipoPeriodicidad = params.periodicidad,
             diasPeriodicidad = params.diasPeriodicidad,
             fechaUltimaModificacion = now,
             fechaProximaEjecucion = reminderAt,
+            horaRecordatorio = params.horaRecordatorio,
             cantidadPostergaciones = if (shouldIncrementPostponements) {
                 currentTask.cantidadPostergaciones + 1
             } else {

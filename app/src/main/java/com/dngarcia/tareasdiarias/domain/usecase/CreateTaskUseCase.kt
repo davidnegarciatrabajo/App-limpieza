@@ -5,15 +5,18 @@ import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.model.Tarea
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
-import javax.inject.Inject
 import java.time.LocalDateTime
+import java.time.LocalTime
+import javax.inject.Inject
 
 data class CreateTaskParams(
     val nombre: String,
+    val subtitulo: String = "",
     val categoriaId: Long,
     val periodicidad: Periodicidad,
     val diasPeriodicidad: Int?,
     val notas: String,
+    val horaRecordatorio: LocalTime?,
 )
 
 class CreateTaskUseCase @Inject constructor(
@@ -26,11 +29,13 @@ class CreateTaskUseCase @Inject constructor(
             periodicidad = params.periodicidad,
             diasPeriodicidad = params.diasPeriodicidad,
             baseDateTime = now,
+            horaRecordatorio = params.horaRecordatorio,
         )
         val taskId = tareaRepository.create(
             tarea = Tarea(
                 id = 0L,
                 nombre = params.nombre.trim(),
+                subtitulo = params.subtitulo.trim(),
                 categoriaId = params.categoriaId,
                 tipoPeriodicidad = params.periodicidad,
                 diasPeriodicidad = params.diasPeriodicidad,
@@ -38,6 +43,7 @@ class CreateTaskUseCase @Inject constructor(
                 fechaCreacion = now,
                 fechaUltimaModificacion = now,
                 fechaProximaEjecucion = reminderAt,
+                horaRecordatorio = params.horaRecordatorio,
                 cantidadPostergaciones = 0,
                 estadoAlerta = EstadoAlerta.NORMAL,
                 mensajeAlerta = null,

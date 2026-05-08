@@ -50,6 +50,7 @@ class TaskStatusResolverTest {
             fechaCreacion = LocalDateTime.of(2026, 5, 1, 10, 0),
             fechaUltimaModificacion = LocalDateTime.of(2026, 5, 5, 10, 0),
             fechaProximaEjecucion = dueAt,
+            horaRecordatorio = null,
             cantidadPostergaciones = 0,
             estadoAlerta = EstadoAlerta.NORMAL,
             mensajeAlerta = null,

@@ -86,6 +86,7 @@ class SeedDebugSampleDataIfNeededUseCase @Inject constructor(
             fechaCreacion = creado,
             fechaUltimaModificacion = creado.plusDays(1),
             fechaProximaEjecucion = proxima,
+            horaRecordatorio = proxima?.toLocalTime(),
             cantidadPostergaciones = postergaciones,
             estadoAlerta = alerta,
             mensajeAlerta = null,

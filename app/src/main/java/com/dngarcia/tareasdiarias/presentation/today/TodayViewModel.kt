@@ -6,6 +6,7 @@ import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.model.TaskPeriodicityFilter
 import com.dngarcia.tareasdiarias.domain.model.TaskSortOrder
 import com.dngarcia.tareasdiarias.domain.usecase.CancelTaskReminderUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.ObserveCategoriasUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.ObservePendingTasksUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.ScheduleTaskReminderUseCase
 import com.dngarcia.tareasdiarias.presentation.common.TaskStatusItemUiModel
@@ -27,15 +28,21 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 data class TodayUiState(
-    val tasks: List<TaskStatusItemUiModel> = emptyList(),
+    val tasks: List<TodayTaskUiModel> = emptyList(),
     val userError: UserError? = null,
     val isLoading: Boolean = true,
+)
+
+data class TodayTaskUiModel(
+    val item: TaskStatusItemUiModel,
+    val categoryName: String,
 )
 
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
 class TodayViewModel @Inject constructor(
     observePendingTasksUseCase: ObservePendingTasksUseCase,
+    observeCategoriasUseCase: ObserveCategoriasUseCase,
     private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase,
     private val cancelTaskReminderUseCase: CancelTaskReminderUseCase,
 ) : ViewModel() {
@@ -54,9 +61,20 @@ class TodayViewModel @Inject constructor(
 
     val uiState: StateFlow<TodayUiState> = combine(
         tasksFlow.map { tasks -> tasks.map { it.toTaskStatusItemUiModel() } },
+        observeCategoriasUseCase(),
         userError,
-    ) { tasks, err ->
-        TodayUiState(tasks = tasks, userError = err, isLoading = false)
+    ) { tasks, categories, err ->
+        val categoriesById = categories.associateBy { it.id }
+        TodayUiState(
+            tasks = tasks.map { task ->
+                TodayTaskUiModel(
+                    item = task,
+                    categoryName = categoriesById[task.task.categoriaId]?.nombre.orEmpty(),
+                )
+            },
+            userError = err,
+            isLoading = false,
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),

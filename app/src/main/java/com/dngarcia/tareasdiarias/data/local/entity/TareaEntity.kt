@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 @Entity(
     tableName = "tarea",
@@ -33,6 +34,8 @@ data class TareaEntity(
     val id: Long = 0L,
     @ColumnInfo(name = "nombre")
     val nombre: String,
+    @ColumnInfo(name = "subtitulo")
+    val subtitulo: String = "",
     @ColumnInfo(name = "categoria_id")
     val categoriaId: Long,
     @ColumnInfo(name = "tipo_periodicidad")
@@ -47,6 +50,8 @@ data class TareaEntity(
     val fechaUltimaModificacion: LocalDateTime = fechaCreacion,
     @ColumnInfo(name = "fecha_proxima_ejecucion")
     val fechaProximaEjecucion: LocalDateTime?,
+    @ColumnInfo(name = "hora_recordatorio")
+    val horaRecordatorio: LocalTime?,
     @ColumnInfo(name = "cantidad_postergaciones")
     val cantidadPostergaciones: Int = 0,
     @ColumnInfo(name = "estado_alerta")

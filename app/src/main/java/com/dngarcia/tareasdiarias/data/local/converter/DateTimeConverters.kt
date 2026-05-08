@@ -5,6 +5,7 @@ import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneOffset
 
 class DateTimeConverters {
@@ -18,6 +19,16 @@ class DateTimeConverters {
         return value?.let {
             LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneOffset.UTC)
         }
+    }
+
+    @TypeConverter
+    fun localTimeToSecondsOfDay(value: LocalTime?): Int? {
+        return value?.toSecondOfDay()
+    }
+
+    @TypeConverter
+    fun secondsOfDayToLocalTime(value: Int?): LocalTime? {
+        return value?.let { LocalTime.ofSecondOfDay(it.toLong()) }
     }
 
     @TypeConverter

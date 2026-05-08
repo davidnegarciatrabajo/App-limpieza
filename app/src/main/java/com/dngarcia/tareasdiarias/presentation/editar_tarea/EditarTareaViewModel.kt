@@ -19,6 +19,7 @@ import com.dngarcia.tareasdiarias.presentation.common.UserError
 import com.dngarcia.tareasdiarias.presentation.common.toUserError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.time.LocalTime
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,10 +35,12 @@ private const val TAG_EDITAR_TAREA = "EditarTareaViewModel"
 data class EditarTareaUiState(
     val taskId: Long = -1L,
     val nombre: String = "",
+    val subtitulo: String = "",
     val categoriaId: Long? = null,
     val periodicidad: Periodicidad = Periodicidad.DIARIA,
     val diasPersonalizados: String = "",
     val notas: String = "",
+    val horaRecordatorio: LocalTime? = null,
     val categorias: List<Categoria> = emptyList(),
     val nombreError: String? = null,
     val categoriaError: String? = null,
@@ -100,10 +103,12 @@ class EditarTareaViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         nombre = task.nombre,
+                        subtitulo = task.subtitulo,
                         categoriaId = task.categoriaId,
                         periodicidad = task.tipoPeriodicidad,
                         diasPersonalizados = task.diasPeriodicidad?.toString().orEmpty(),
                         notas = task.notas,
+                        horaRecordatorio = task.horaRecordatorio,
                         isLoading = false,
                         loadError = null,
                         isTaskReady = true,
@@ -126,6 +131,10 @@ class EditarTareaViewModel @Inject constructor(
         _uiState.update { it.copy(nombre = value, nombreError = null, saveError = null) }
     }
 
+    fun onSubtituloChange(value: String) {
+        _uiState.update { it.copy(subtitulo = value, saveError = null) }
+    }
+
     fun onCategoriaSelected(categoriaId: Long) {
         _uiState.update { it.copy(categoriaId = categoriaId, categoriaError = null, saveError = null) }
     }
@@ -140,6 +149,14 @@ class EditarTareaViewModel @Inject constructor(
 
     fun onNotasChange(value: String) {
         _uiState.update { it.copy(notas = value, saveError = null) }
+    }
+
+    fun onHoraRecordatorioChange(value: LocalTime) {
+        _uiState.update { it.copy(horaRecordatorio = value, saveError = null) }
+    }
+
+    fun onClearHoraRecordatorio() {
+        _uiState.update { it.copy(horaRecordatorio = null, saveError = null) }
     }
 
     fun onConfirmModificationClick() {
@@ -210,10 +227,12 @@ class EditarTareaViewModel @Inject constructor(
                     params = UpdateTaskParams(
                         taskId = current.taskId,
                         nombre = nombre,
+                        subtitulo = current.subtitulo,
                         categoriaId = selectedCategoryId,
                         notas = current.notas,
                         periodicidad = current.periodicidad,
                         diasPeriodicidad = periodicidadDays,
+                        horaRecordatorio = current.horaRecordatorio,
                     ),
                 )
                 _finishEvent.emit(Unit)

@@ -28,15 +28,18 @@ class CreateTaskUseCaseTest {
         val taskId = useCase(
             params = CreateTaskParams(
                 nombre = "Limpiar cocina",
+                subtitulo = "Encimera y hornallas",
                 categoriaId = 2L,
                 periodicidad = Periodicidad.DIARIA,
                 diasPeriodicidad = null,
                 notas = "Con detergente",
+                horaRecordatorio = null,
             ),
         )
 
         assertEquals(99L, taskId)
         assertEquals("Limpiar cocina", fakeRepository.lastCreatedTask?.nombre)
+        assertEquals("Encimera y hornallas", fakeRepository.lastCreatedTask?.subtitulo)
         assertNotNull(fakeScheduler.lastScheduledReminder)
         assertEquals(false, fakeScheduler.lastScheduledReminder?.requiresExactScheduling)
     }

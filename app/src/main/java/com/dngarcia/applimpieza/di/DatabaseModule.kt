@@ -29,6 +29,8 @@ object DatabaseModule {
             .addMigrations(
                 TareasMigrations.MIGRATION_1_2,
                 TareasMigrations.MIGRATION_2_3,
+                TareasMigrations.MIGRATION_3_4,
+                TareasMigrations.MIGRATION_4_5,
             )
         if (BuildConfig.DEBUG) {
             // Si la BD se recrea asi pero el flag de seed sigue en prefs, borrar datos de la app para repetir el seed.

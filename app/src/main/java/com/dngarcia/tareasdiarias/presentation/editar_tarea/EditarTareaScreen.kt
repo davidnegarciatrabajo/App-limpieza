@@ -26,7 +26,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,7 +38,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dngarcia.tareasdiarias.R
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.presentation.common.AppTopBar
+import com.dngarcia.tareasdiarias.presentation.common.OptionalReminderTimeField
 import com.dngarcia.tareasdiarias.presentation.nueva_tarea.periodicidadLabelResource
+import java.time.LocalTime
 
 @Composable
 fun EditarTareaRoute(
@@ -55,10 +56,13 @@ fun EditarTareaRoute(
         uiState = uiState,
         onBack = onBack,
         onNombreChange = viewModel::onNombreChange,
+        onSubtituloChange = viewModel::onSubtituloChange,
         onCategoriaSelected = viewModel::onCategoriaSelected,
         onPeriodicidadSelected = viewModel::onPeriodicidadSelected,
         onDiasPersonalizadosChange = viewModel::onDiasPersonalizadosChange,
         onNotasChange = viewModel::onNotasChange,
+        onHoraRecordatorioChange = viewModel::onHoraRecordatorioChange,
+        onClearHoraRecordatorio = viewModel::onClearHoraRecordatorio,
         onConfirmModificationClick = viewModel::onConfirmModificationClick,
         onDismissConfirmDialog = viewModel::onDismissConfirmDialog,
         onConfirmSave = viewModel::onConfirmSave,
@@ -75,10 +79,13 @@ fun EditarTareaScreen(
     uiState: EditarTareaUiState,
     onBack: () -> Unit,
     onNombreChange: (String) -> Unit,
+    onSubtituloChange: (String) -> Unit,
     onCategoriaSelected: (Long) -> Unit,
     onPeriodicidadSelected: (Periodicidad) -> Unit,
     onDiasPersonalizadosChange: (String) -> Unit,
     onNotasChange: (String) -> Unit,
+    onHoraRecordatorioChange: (LocalTime) -> Unit,
+    onClearHoraRecordatorio: () -> Unit,
     onConfirmModificationClick: () -> Unit,
     onDismissConfirmDialog: () -> Unit,
     onConfirmSave: () -> Unit,
@@ -188,6 +195,13 @@ fun EditarTareaScreen(
                 supportingText = { uiState.nombreError?.let { Text(it) } },
             )
 
+            OutlinedTextField(
+                value = uiState.subtitulo,
+                onValueChange = onSubtituloChange,
+                label = { Text(stringResource(id = R.string.task_field_subtitle_optional)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+
             ExposedDropdownMenuBox(
                 expanded = categoryExpanded,
                 onExpandedChange = { categoryExpanded = !categoryExpanded },
@@ -267,6 +281,13 @@ fun EditarTareaScreen(
                 label = { Text(stringResource(id = R.string.task_field_notes)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
+            )
+
+            OptionalReminderTimeField(
+                selectedTime = uiState.horaRecordatorio,
+                onTimeSelected = onHoraRecordatorioChange,
+                onClearTime = onClearHoraRecordatorio,
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Button(

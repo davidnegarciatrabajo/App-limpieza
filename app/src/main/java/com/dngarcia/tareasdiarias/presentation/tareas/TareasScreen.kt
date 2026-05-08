@@ -69,6 +69,8 @@ import com.dngarcia.tareasdiarias.domain.model.TaskSortOrder
 import com.dngarcia.tareasdiarias.presentation.common.TaskStatusItemUiModel
 import com.dngarcia.tareasdiarias.presentation.common.toTaskStatusItemUiModel
 import com.dngarcia.tareasdiarias.presentation.common.AppFilterChip
+import com.dngarcia.tareasdiarias.presentation.common.MainBottomBar
+import com.dngarcia.tareasdiarias.presentation.common.MainBottomDestination
 import com.dngarcia.tareasdiarias.presentation.common.AppTaskCard
 import com.dngarcia.tareasdiarias.presentation.common.AppTopBar
 import com.dngarcia.tareasdiarias.presentation.common.MetaPill
@@ -80,6 +82,8 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun TareasRoute(
+    onOpenToday: () -> Unit,
+    onOpenMenu: () -> Unit,
     onAddTaskClick: () -> Unit,
     onTaskClick: (Long) -> Unit,
     viewModel: TareasViewModel = hiltViewModel(),
@@ -120,6 +124,8 @@ fun TareasRoute(
         onClearAdvancedFilters = viewModel::clearAdvancedFilters,
         onDismissUserError = viewModel::dismissUserError,
         onRetryLoadTasks = viewModel::retryLoadTasks,
+        onOpenToday = onOpenToday,
+        onOpenMenu = onOpenMenu,
         onAddTaskClick = onAddTaskClick,
         onTaskClick = onTaskClick,
         modifier = modifier,
@@ -144,6 +150,8 @@ fun TareasScreen(
     onClearAdvancedFilters: () -> Unit,
     onDismissUserError: () -> Unit,
     onRetryLoadTasks: () -> Unit,
+    onOpenToday: () -> Unit,
+    onOpenMenu: () -> Unit,
     onAddTaskClick: () -> Unit,
     onTaskClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -177,6 +185,14 @@ fun TareasScreen(
             FloatingActionButton(onClick = onAddTaskClick) {
                 Text(text = stringResource(id = R.string.tasks_add))
             }
+        },
+        bottomBar = {
+            MainBottomBar(
+                selectedDestination = MainBottomDestination.TASKS,
+                onOpenToday = onOpenToday,
+                onOpenTasks = {},
+                onOpenMenu = onOpenMenu,
+            )
         },
     ) { innerPadding ->
         LazyColumn(
@@ -652,6 +668,8 @@ private fun TareasScreenPreview() {
         onClearAdvancedFilters = {},
         onDismissUserError = {},
         onRetryLoadTasks = {},
+        onOpenToday = {},
+        onOpenMenu = {},
         onAddTaskClick = {},
         onTaskClick = {},
     )
@@ -746,6 +764,7 @@ private fun mockTask(id: Long): TaskStatusItemUiModel {
         fechaCreacion = LocalDateTime.now(),
         fechaUltimaModificacion = LocalDateTime.now(),
         fechaProximaEjecucion = LocalDateTime.now().plusHours(8),
+        horaRecordatorio = null,
         cantidadPostergaciones = 2,
         estadoAlerta = com.dngarcia.tareasdiarias.domain.model.EstadoAlerta.NORMAL,
         mensajeAlerta = null,

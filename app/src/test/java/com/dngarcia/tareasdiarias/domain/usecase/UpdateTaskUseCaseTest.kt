@@ -32,14 +32,17 @@ class UpdateTaskUseCaseTest {
             params = UpdateTaskParams(
                 taskId = 44L,
                 nombre = "Tarea editada",
+                subtitulo = "Nuevo subtitulo",
                 categoriaId = 3L,
                 notas = "Notas editadas",
                 periodicidad = Periodicidad.SEMANAL,
                 diasPeriodicidad = null,
+                horaRecordatorio = null,
             ),
         )
 
         assertEquals("Tarea editada", fakeRepository.lastUpdatedTask?.nombre)
+        assertEquals("Nuevo subtitulo", fakeRepository.lastUpdatedTask?.subtitulo)
         assertNotNull(fakeScheduler.lastScheduledReminder)
         assertEquals(false, fakeScheduler.lastScheduledReminder?.requiresExactScheduling)
     }
@@ -61,12 +64,15 @@ class UpdateTaskUseCaseTest {
             return Tarea(
                 id = id,
                 nombre = "Base",
+                subtitulo = "Subtitulo base",
                 categoriaId = 1L,
                 tipoPeriodicidad = Periodicidad.DIARIA,
                 diasPeriodicidad = null,
                 notas = "",
                 fechaCreacion = LocalDateTime.now(),
+                fechaUltimaModificacion = LocalDateTime.now(),
                 fechaProximaEjecucion = LocalDateTime.now().plusDays(1),
+                horaRecordatorio = null,
                 cantidadPostergaciones = 0,
                 estadoAlerta = EstadoAlerta.NORMAL,
                 mensajeAlerta = null,

@@ -1,14 +1,12 @@
 package com.dngarcia.tareasdiarias.presentation.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -95,43 +93,32 @@ private fun HomeAccessCard(
         cardItem == HomeCardItem.NewTask ||
         cardItem == HomeCardItem.Categories
 
-    AppTaskCard(modifier = modifier.fillMaxWidth()) {
-        Row(
+    AppTaskCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(enabled = isEnabledCard) {
+                when (cardItem) {
+                    HomeCardItem.Tasks -> onTasksClick()
+                    HomeCardItem.NewTask -> onNewTaskClick()
+                    HomeCardItem.Today -> onTodayClick()
+                    HomeCardItem.Categories -> onCategoriesClick()
+                }
+            },
+    ) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = stringResource(id = titleRes),
+                style = MaterialTheme.typography.titleMedium
+            )
+            if (!isEnabledCard) {
                 Text(
-                    text = stringResource(id = titleRes),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                if (!isEnabledCard) {
-                    Text(
-                        text = stringResource(id = R.string.placeholder_coming_soon),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-            OutlinedButton(
-                onClick = {
-                    when (cardItem) {
-                        HomeCardItem.Tasks -> onTasksClick()
-                        HomeCardItem.NewTask -> onNewTaskClick()
-                        HomeCardItem.Today -> onTodayClick()
-                        HomeCardItem.Categories -> onCategoriesClick()
-                    }
-                },
-                enabled = isEnabledCard
-            ) {
-                Text(
-                    text = when (cardItem) {
-                        HomeCardItem.Tasks -> stringResource(id = R.string.home_card_tasks)
-                        HomeCardItem.NewTask -> stringResource(id = R.string.home_card_new_task)
-                        HomeCardItem.Today -> stringResource(id = R.string.home_card_today)
-                        HomeCardItem.Categories -> stringResource(id = R.string.home_card_categories)
-                    }
+                    text = stringResource(id = R.string.placeholder_coming_soon),
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }

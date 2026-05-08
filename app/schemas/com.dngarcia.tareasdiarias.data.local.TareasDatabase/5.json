@@ -1,0 +1,274 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 5,
+    "identityHash": "154252cdb2e58a2b05b3f70c2225de9c",
+    "entities": [
+      {
+        "tableName": "tarea",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nombre` TEXT NOT NULL, `subtitulo` TEXT NOT NULL, `categoria_id` INTEGER NOT NULL, `tipo_periodicidad` TEXT NOT NULL, `dias_periodicidad` INTEGER, `notas` TEXT NOT NULL, `fecha_creacion` INTEGER NOT NULL, `fecha_ultima_modificacion` INTEGER NOT NULL, `fecha_proxima_ejecucion` INTEGER, `hora_recordatorio` INTEGER, `cantidad_postergaciones` INTEGER NOT NULL, `estado_alerta` TEXT NOT NULL, `mensaje_alerta` TEXT, FOREIGN KEY(`categoria_id`) REFERENCES `categoria`(`id`) ON UPDATE CASCADE ON DELETE RESTRICT )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subtitulo",
+            "columnName": "subtitulo",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categoriaId",
+            "columnName": "categoria_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tipoPeriodicidad",
+            "columnName": "tipo_periodicidad",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "diasPeriodicidad",
+            "columnName": "dias_periodicidad",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "notas",
+            "columnName": "notas",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaCreacion",
+            "columnName": "fecha_creacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaUltimaModificacion",
+            "columnName": "fecha_ultima_modificacion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaProximaEjecucion",
+            "columnName": "fecha_proxima_ejecucion",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "horaRecordatorio",
+            "columnName": "hora_recordatorio",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "cantidadPostergaciones",
+            "columnName": "cantidad_postergaciones",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "estadoAlerta",
+            "columnName": "estado_alerta",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "mensajeAlerta",
+            "columnName": "mensaje_alerta",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_tarea_nombre",
+            "unique": true,
+            "columnNames": [
+              "nombre"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_tarea_nombre` ON `${TABLE_NAME}` (`nombre`)"
+          },
+          {
+            "name": "index_tarea_categoria_id",
+            "unique": false,
+            "columnNames": [
+              "categoria_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_tarea_categoria_id` ON `${TABLE_NAME}` (`categoria_id`)"
+          },
+          {
+            "name": "index_tarea_fecha_proxima_ejecucion",
+            "unique": false,
+            "columnNames": [
+              "fecha_proxima_ejecucion"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_tarea_fecha_proxima_ejecucion` ON `${TABLE_NAME}` (`fecha_proxima_ejecucion`)"
+          },
+          {
+            "name": "index_tarea_fecha_ultima_modificacion",
+            "unique": false,
+            "columnNames": [
+              "fecha_ultima_modificacion"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_tarea_fecha_ultima_modificacion` ON `${TABLE_NAME}` (`fecha_ultima_modificacion`)"
+          },
+          {
+            "name": "index_tarea_tipo_periodicidad",
+            "unique": false,
+            "columnNames": [
+              "tipo_periodicidad"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_tarea_tipo_periodicidad` ON `${TABLE_NAME}` (`tipo_periodicidad`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "categoria",
+            "onDelete": "RESTRICT",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "categoria_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "categoria",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `nombre` TEXT NOT NULL, `color` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nombre",
+            "columnName": "nombre",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "color",
+            "columnName": "color",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_categoria_nombre",
+            "unique": true,
+            "columnNames": [
+              "nombre"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_categoria_nombre` ON `${TABLE_NAME}` (`nombre`)"
+          }
+        ]
+      },
+      {
+        "tableName": "ejecucion",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tarea_id` INTEGER NOT NULL, `fecha_ejecucion` INTEGER NOT NULL, `completada_por_usuario` INTEGER NOT NULL, FOREIGN KEY(`tarea_id`) REFERENCES `tarea`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tareaId",
+            "columnName": "tarea_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "fechaEjecucion",
+            "columnName": "fecha_ejecucion",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completadaPorUsuario",
+            "columnName": "completada_por_usuario",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_ejecucion_tarea_id",
+            "unique": false,
+            "columnNames": [
+              "tarea_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ejecucion_tarea_id` ON `${TABLE_NAME}` (`tarea_id`)"
+          },
+          {
+            "name": "index_ejecucion_fecha_ejecucion",
+            "unique": false,
+            "columnNames": [
+              "fecha_ejecucion"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ejecucion_fecha_ejecucion` ON `${TABLE_NAME}` (`fecha_ejecucion`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "tarea",
+            "onDelete": "CASCADE",
+            "onUpdate": "CASCADE",
+            "columns": [
+              "tarea_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '154252cdb2e58a2b05b3f70c2225de9c')"
+    ]
+  }
+}

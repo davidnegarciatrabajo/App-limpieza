@@ -16,6 +16,7 @@ import com.dngarcia.tareasdiarias.presentation.common.toUserError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
+import java.time.LocalTime
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,10 +29,12 @@ import kotlinx.coroutines.launch
 
 data class NuevaTareaUiState(
     val nombre: String = "",
+    val subtitulo: String = "",
     val categoriaId: Long? = null,
     val periodicidad: Periodicidad = Periodicidad.DIARIA,
     val diasPersonalizados: String = "",
     val notas: String = "",
+    val horaRecordatorio: LocalTime? = null,
     val categorias: List<Categoria> = emptyList(),
     val crearNuevaCategoria: Boolean = false,
     val nuevaCategoriaNombre: String = "",
@@ -75,6 +78,10 @@ class NuevaTareaViewModel @Inject constructor(
         _uiState.update { it.copy(nombre = value, nombreError = null, saveError = null) }
     }
 
+    fun onSubtituloChange(value: String) {
+        _uiState.update { it.copy(subtitulo = value, saveError = null) }
+    }
+
     fun onCategoriaSelected(categoriaId: Long) {
         _uiState.update { it.copy(categoriaId = categoriaId, categoriaError = null, saveError = null) }
     }
@@ -95,6 +102,14 @@ class NuevaTareaViewModel @Inject constructor(
 
     fun onNotasChange(value: String) {
         _uiState.update { it.copy(notas = value, saveError = null) }
+    }
+
+    fun onHoraRecordatorioChange(value: LocalTime) {
+        _uiState.update { it.copy(horaRecordatorio = value, saveError = null) }
+    }
+
+    fun onClearHoraRecordatorio() {
+        _uiState.update { it.copy(horaRecordatorio = null, saveError = null) }
     }
 
     fun onCrearNuevaCategoriaChange(enabled: Boolean) {
@@ -145,10 +160,12 @@ class NuevaTareaViewModel @Inject constructor(
                 createTaskUseCase(
                     params = CreateTaskParams(
                         nombre = nombre,
+                        subtitulo = current.subtitulo,
                         categoriaId = categoriaId,
                         periodicidad = current.periodicidad,
                         diasPeriodicidad = periodicidadDays,
                         notas = current.notas,
+                        horaRecordatorio = current.horaRecordatorio,
                     ),
                 )
                 _finishEvent.emit(Unit)

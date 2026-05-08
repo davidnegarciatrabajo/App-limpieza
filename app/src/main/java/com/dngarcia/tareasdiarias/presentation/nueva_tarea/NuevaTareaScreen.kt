@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
@@ -25,11 +24,11 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -38,10 +37,13 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dngarcia.tareasdiarias.R
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.presentation.common.AppTopBar
+import com.dngarcia.tareasdiarias.presentation.common.OptionalReminderTimeField
+import java.time.LocalTime
 
 @Composable
 fun NuevaTareaRoute(
     onBack: () -> Unit,
+    onOpenCategories: () -> Unit,
     onTaskCreated: () -> Unit,
     viewModel: NuevaTareaViewModel = hiltViewModel(),
 ) {
@@ -53,12 +55,14 @@ fun NuevaTareaRoute(
         uiState = uiState,
         onBack = onBack,
         onNombreChange = viewModel::onNombreChange,
+        onSubtituloChange = viewModel::onSubtituloChange,
         onCategoriaSelected = viewModel::onCategoriaSelected,
         onPeriodicidadSelected = viewModel::onPeriodicidadSelected,
         onDiasPersonalizadosChange = viewModel::onDiasPersonalizadosChange,
         onNotasChange = viewModel::onNotasChange,
-        onCrearNuevaCategoriaChange = viewModel::onCrearNuevaCategoriaChange,
-        onNuevaCategoriaNombreChange = viewModel::onNuevaCategoriaNombreChange,
+        onHoraRecordatorioChange = viewModel::onHoraRecordatorioChange,
+        onClearHoraRecordatorio = viewModel::onClearHoraRecordatorio,
+        onOpenCategories = onOpenCategories,
         onGuardar = viewModel::onGuardarClick,
         onDismissSaveError = viewModel::dismissSaveError,
         onRetrySave = viewModel::retrySave,
@@ -71,12 +75,14 @@ fun NuevaTareaScreen(
     uiState: NuevaTareaUiState,
     onBack: () -> Unit,
     onNombreChange: (String) -> Unit,
+    onSubtituloChange: (String) -> Unit,
     onCategoriaSelected: (Long) -> Unit,
     onPeriodicidadSelected: (Periodicidad) -> Unit,
     onDiasPersonalizadosChange: (String) -> Unit,
     onNotasChange: (String) -> Unit,
-    onCrearNuevaCategoriaChange: (Boolean) -> Unit,
-    onNuevaCategoriaNombreChange: (String) -> Unit,
+    onHoraRecordatorioChange: (LocalTime) -> Unit,
+    onClearHoraRecordatorio: () -> Unit,
+    onOpenCategories: () -> Unit,
     onGuardar: () -> Unit,
     onDismissSaveError: () -> Unit,
     onRetrySave: () -> Unit,
@@ -124,11 +130,17 @@ fun NuevaTareaScreen(
                 },
             )
 
+            OutlinedTextField(
+                value = uiState.subtitulo,
+                onValueChange = onSubtituloChange,
+                label = { Text(stringResource(id = R.string.task_field_subtitle_optional)) },
+                modifier = Modifier.fillMaxWidth(),
+            )
+
             CategorySection(
                 uiState = uiState,
                 onCategoriaSelected = onCategoriaSelected,
-                onCrearNuevaCategoriaChange = onCrearNuevaCategoriaChange,
-                onNuevaCategoriaNombreChange = onNuevaCategoriaNombreChange,
+                onOpenCategories = onOpenCategories,
             )
             uiState.categoriaError?.let { Text(it) }
 
@@ -145,6 +157,13 @@ fun NuevaTareaScreen(
                 label = { Text(stringResource(id = R.string.task_field_notes)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
+            )
+
+            OptionalReminderTimeField(
+                selectedTime = uiState.horaRecordatorio,
+                onTimeSelected = onHoraRecordatorioChange,
+                onClearTime = onClearHoraRecordatorio,
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Button(
@@ -166,53 +185,44 @@ fun NuevaTareaScreen(
 private fun CategorySection(
     uiState: NuevaTareaUiState,
     onCategoriaSelected: (Long) -> Unit,
-    onCrearNuevaCategoriaChange: (Boolean) -> Unit,
-    onNuevaCategoriaNombreChange: (String) -> Unit,
+    onOpenCategories: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        CheckboxRow(
-            checked = uiState.crearNuevaCategoria,
-            text = stringResource(id = R.string.task_category_create_new),
-            onCheckedChange = onCrearNuevaCategoriaChange,
-        )
-        if (!uiState.crearNuevaCategoria) {
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = !expanded },
-            ) {
-                OutlinedTextField(
-                    value = uiState.categorias.firstOrNull { it.id == uiState.categoriaId }?.nombre.orEmpty(),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(stringResource(id = R.string.task_field_category)) },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier
-                        .menuAnchor(
-                            type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
-                            enabled = true,
-                        )
-                        .fillMaxWidth(),
-                )
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    uiState.categorias.forEach { categoria ->
-                        DropdownMenuItem(
-                            text = { Text(categoria.nombre) },
-                            onClick = {
-                                onCategoriaSelected(categoria.id)
-                                expanded = false
-                            },
-                        )
-                    }
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded },
+        ) {
+            OutlinedTextField(
+                value = uiState.categorias.firstOrNull { it.id == uiState.categoriaId }?.nombre.orEmpty(),
+                onValueChange = {},
+                readOnly = true,
+                label = { Text(stringResource(id = R.string.task_field_category)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier
+                    .menuAnchor(
+                        type = ExposedDropdownMenuAnchorType.PrimaryNotEditable,
+                        enabled = true,
+                    )
+                    .fillMaxWidth(),
+            )
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                uiState.categorias.forEach { categoria ->
+                    DropdownMenuItem(
+                        text = { Text(categoria.nombre) },
+                        onClick = {
+                            onCategoriaSelected(categoria.id)
+                            expanded = false
+                        },
+                    )
                 }
             }
-        } else {
-            OutlinedTextField(
-                value = uiState.nuevaCategoriaNombre,
-                onValueChange = onNuevaCategoriaNombreChange,
-                label = { Text(stringResource(id = R.string.task_category_new_name)) },
-                modifier = Modifier.fillMaxWidth(),
-            )
+        }
+        TextButton(
+            onClick = onOpenCategories,
+            modifier = Modifier.align(Alignment.End),
+        ) {
+            Text(text = stringResource(id = R.string.task_category_create_new))
         }
     }
 }
@@ -263,23 +273,6 @@ private fun PeriodicidadSection(
             label = { Text(stringResource(id = R.string.task_custom_days)) },
             modifier = Modifier.fillMaxWidth(),
         )
-    }
-}
-
-@Composable
-private fun CheckboxRow(
-    checked: Boolean,
-    text: String,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    androidx.compose.foundation.layout.Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-        )
-        Text(text)
     }
 }
 

@@ -68,6 +68,16 @@ fun AppNavigation(
         }
         composable(route = AppRoute.TASKS) {
             TareasRoute(
+                onOpenToday = {
+                    navController.navigate(AppRoute.TODAY) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenMenu = {
+                    navController.navigate(AppRoute.HOME) {
+                        launchSingleTop = true
+                    }
+                },
                 onAddTaskClick = {
                     navController.navigate(AppRoute.NEW_TASK)
                 },
@@ -78,17 +88,32 @@ fun AppNavigation(
         }
         composable(route = AppRoute.TODAY) {
             TodayRoute(
-                onBackHome = {
-                    navController.navigate(AppRoute.HOME) {
-                        popUpTo(AppRoute.TODAY) { inclusive = true }
+                onOpenHome = {
+                    navController.navigate(AppRoute.TODAY) {
                         launchSingleTop = true
                     }
-                }
+                },
+                onOpenTasks = {
+                    navController.navigate(AppRoute.TASKS) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenMenu = {
+                    navController.navigate(AppRoute.HOME) {
+                        launchSingleTop = true
+                    }
+                },
+                onAddTask = {
+                    navController.navigate(AppRoute.NEW_TASK)
+                },
             )
         }
         composable(route = AppRoute.NEW_TASK) {
             NuevaTareaRoute(
                 onBack = { navController.popBackStack() },
+                onOpenCategories = {
+                    navController.navigate(AppRoute.CATEGORIES)
+                },
                 onTaskCreated = { navController.popBackStack() },
             )
         }

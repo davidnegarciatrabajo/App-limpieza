@@ -28,6 +28,15 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".widget.today.postpone.PostponeTaskDialogActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:finishOnTaskLaunch="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=".widget.postpone"
+            android:theme="@style/Theme.AppLimpieza.WidgetDialog" />
+
         <receiver
             android:name=".data.receiver.BootReceiver"
             android:enabled="true"

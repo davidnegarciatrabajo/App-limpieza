@@ -59,13 +59,20 @@ interface TareaDao {
         )
         AND (
             :statusFilter IS NULL
-            OR (:statusFilter = 'VENCIDA' AND fecha_proxima_ejecucion < :todayStart)
             OR (
-                :statusFilter = 'PROXIMA'
-                AND fecha_proxima_ejecucion >= :todayStart
-                AND fecha_proxima_ejecucion <= :upcomingThreshold
+                :statusFilter = 'VENCIDA'
+                AND fecha_proxima_ejecucion IS NOT NULL
+                AND date(datetime(fecha_proxima_ejecucion / 1000, 'unixepoch', 'utc'))
+                    <= date(datetime(:todayStart / 1000, 'unixepoch', 'utc'))
             )
-            OR (:statusFilter = 'OK' AND fecha_proxima_ejecucion > :upcomingThreshold)
+            OR (
+                :statusFilter = 'OK'
+                AND (
+                    fecha_proxima_ejecucion IS NULL
+                    OR date(datetime(fecha_proxima_ejecucion / 1000, 'unixepoch', 'utc'))
+                        > date(datetime(:todayStart / 1000, 'unixepoch', 'utc'))
+                )
+            )
         )
         AND (
             :datePreset = 'ALL'
@@ -84,16 +91,37 @@ interface TareaDao {
                 AND fecha_proxima_ejecucion >= :todayStart
                 AND fecha_proxima_ejecucion <= :next30DaysEnd
             )
-            OR (:datePreset = 'OVERDUE' AND fecha_proxima_ejecucion < :todayStart)
+            OR (
+                :datePreset = 'OVERDUE'
+                AND fecha_proxima_ejecucion IS NOT NULL
+                AND date(datetime(fecha_proxima_ejecucion / 1000, 'unixepoch', 'utc'))
+                    <= date(datetime(:todayStart / 1000, 'unixepoch', 'utc'))
+            )
         )
         AND (
             :categoryId IS NULL
             OR categoria_id = :categoryId
         )
         ORDER BY
-            CASE WHEN :sortOrder = 'HIGHEST_DELAY' THEN cantidad_postergaciones END DESC,
-            CASE WHEN :sortOrder = 'HIGHEST_DELAY' THEN fecha_proxima_ejecucion END ASC,
-            CASE WHEN :sortOrder = 'OLDEST_FIRST' THEN fecha_creacion END ASC,
+            CASE WHEN :sortOrder = 'DUE_DATE' THEN
+                CASE
+                    WHEN fecha_proxima_ejecucion IS NOT NULL
+                        AND date(datetime(fecha_proxima_ejecucion / 1000, 'unixepoch', 'utc'))
+                            <= date(datetime(:todayStart / 1000, 'unixepoch', 'utc'))
+                    THEN CAST(
+                        julianday(date(datetime(:todayStart / 1000, 'unixepoch', 'utc')))
+                        - julianday(date(datetime(fecha_proxima_ejecucion / 1000, 'unixepoch', 'utc')))
+                        AS INTEGER
+                    )
+                    ELSE -1
+                END
+            END DESC,
+            CASE WHEN :sortOrder = 'DUE_DATE' THEN fecha_proxima_ejecucion END ASC,
+            CASE WHEN :sortOrder = 'POSTPONED' THEN cantidad_postergaciones END DESC,
+            CASE WHEN :sortOrder = 'POSTPONED' THEN fecha_visible_desde END DESC,
+            CASE WHEN :sortOrder = 'POSTPONED' THEN fecha_ultima_modificacion END DESC,
+            CASE WHEN :sortOrder = 'OLDEST' THEN fecha_creacion END ASC,
+            CASE WHEN :sortOrder = 'RECENT' THEN fecha_creacion END DESC,
             fecha_creacion DESC
         """
     )
@@ -105,7 +133,6 @@ interface TareaDao {
         statusFilter: String?,
         datePreset: String,
         categoryId: Long?,
-        upcomingThreshold: LocalDateTime,
         todayStart: LocalDateTime,
         todayEnd: LocalDateTime,
         next7DaysEnd: LocalDateTime,
@@ -114,6 +141,12 @@ interface TareaDao {
 
     @Query("SELECT * FROM tarea WHERE fecha_proxima_ejecucion IS NOT NULL")
     suspend fun getPendingReminderTasks(): List<TareaEntity>
+
+    @Query("SELECT COUNT(*) FROM tarea WHERE categoria_id = :categoryId")
+    suspend fun countByCategoryId(categoryId: Long): Int
+
+    @Query("SELECT * FROM tarea WHERE categoria_id = :categoryId ORDER BY fecha_creacion DESC")
+    suspend fun getByCategoryId(categoryId: Long): List<TareaEntity>
 
     @Query("SELECT * FROM tarea WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): TareaEntity?

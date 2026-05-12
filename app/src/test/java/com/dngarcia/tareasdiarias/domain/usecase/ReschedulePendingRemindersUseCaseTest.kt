@@ -32,7 +32,7 @@ class ReschedulePendingRemindersUseCaseTest {
 
         assertEquals(2, fakeScheduler.scheduledReminders.size)
         assertEquals("Regar plantas", fakeScheduler.scheduledReminders.first().taskTitle)
-        assertEquals(false, fakeScheduler.scheduledReminders.first().requiresExactScheduling)
+        assertEquals(true, fakeScheduler.scheduledReminders.first().requiresExactScheduling)
     }
 
     private fun sampleTask(id: Long, nombre: String, reminderAt: LocalDateTime): Tarea {
@@ -48,7 +48,9 @@ class ReschedulePendingRemindersUseCaseTest {
             fechaCreacion = reminderAt.minusDays(1),
             fechaUltimaModificacion = reminderAt.minusHours(12),
             fechaProximaEjecucion = reminderAt,
+            fechaVisibleDesde = reminderAt.toLocalDate(),
             horaRecordatorio = reminderAt.toLocalTime(),
+            ultimaVezQueHiceLaTarea = null,
             cantidadPostergaciones = 0,
             estadoAlerta = EstadoAlerta.NORMAL,
             mensajeAlerta = null,
@@ -72,6 +74,8 @@ class ReschedulePendingRemindersUseCaseTest {
         override suspend fun create(tarea: Tarea): Long = 0L
         override suspend fun update(tarea: Tarea) = Unit
         override suspend fun deleteById(id: Long) = Unit
+        override suspend fun getByCategoryId(categoryId: Long): List<Tarea> = emptyList()
+        override suspend fun countByCategoryId(categoryId: Long): Int = 0
         override suspend fun existsByNombre(nombre: String, excludeId: Long?): Boolean = false
     }
 

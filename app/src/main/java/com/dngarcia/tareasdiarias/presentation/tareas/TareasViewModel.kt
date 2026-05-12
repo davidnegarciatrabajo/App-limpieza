@@ -6,6 +6,7 @@ import com.dngarcia.tareasdiarias.domain.model.Categoria
 import com.dngarcia.tareasdiarias.domain.model.TaskAdvancedFilters
 import com.dngarcia.tareasdiarias.domain.model.TaskPeriodicityFilter
 import com.dngarcia.tareasdiarias.domain.model.TaskSortOrder
+import com.dngarcia.tareasdiarias.domain.usecase.DeleteTaskUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.ObserveCategoriasUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.ObservePendingTasksUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.ObserveTopPendingTasksUseCase
@@ -25,10 +26,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class TareasUiState(
     val selectedFilter: TaskPeriodicityFilter = TaskPeriodicityFilter.ALL,
-    val selectedSortOrder: TaskSortOrder = TaskSortOrder.HIGHEST_DELAY,
+    val selectedSortOrder: TaskSortOrder = TaskSortOrder.RECENT,
     val searchQuery: String = "",
     val includeNotesInSearch: Boolean = true,
     val advancedFilters: TaskAdvancedFilters = TaskAdvancedFilters(),
@@ -58,19 +60,21 @@ class TareasViewModel @Inject constructor(
     observeTopPendingTasksUseCase: ObserveTopPendingTasksUseCase,
     observeCategoriasUseCase: ObserveCategoriasUseCase,
     private val observePendingTasksUseCase: ObservePendingTasksUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase,
 ) : ViewModel() {
     private val selectedFilter = MutableStateFlow(TaskPeriodicityFilter.ALL)
-    private val selectedSortOrder = MutableStateFlow(TaskSortOrder.HIGHEST_DELAY)
-    private val searchQuery = MutableStateFlow("")
+    private val selectedSortOrder = MutableStateFlow(TaskSortOrder.RECENT)
+    private val rawSearchQuery = MutableStateFlow("")
     private val includeNotesInSearch = MutableStateFlow(true)
     private val advancedFilters = MutableStateFlow(TaskAdvancedFilters())
     private val userError = MutableStateFlow<UserError?>(null)
     private val refreshSignal = MutableStateFlow(0)
+    private val debouncedSearchQuery = rawSearchQuery.debounce(SEARCH_DEBOUNCE_MS)
 
     private val searchInputs = combine(
         selectedFilter,
         selectedSortOrder,
-        searchQuery.debounce(SEARCH_DEBOUNCE_MS),
+        debouncedSearchQuery,
         includeNotesInSearch,
         advancedFilters,
     ) { filter, sortOrder, query, includeNotes, filters ->
@@ -111,17 +115,25 @@ class TareasViewModel @Inject constructor(
         }
     }
 
-    val uiState: StateFlow<TareasUiState> = combine(
+    private val searchUiInputs = combine(
+        rawSearchQuery,
         searchInputs,
+    ) { query, inputs ->
+        query to inputs
+    }
+
+    val uiState: StateFlow<TareasUiState> = combine(
+        searchUiInputs,
         filteredTasksFlow,
         topPendingSafe,
         categoriasSafe,
         userError,
-    ) { inputs, filteredTasks, topTasks, categorias, currentError ->
+    ) { searchState, filteredTasks, topTasks, categorias, currentError ->
+        val (query, inputs) = searchState
         TareasUiState(
             selectedFilter = inputs.periodicityFilter,
             selectedSortOrder = inputs.sortOrder,
-            searchQuery = inputs.query,
+            searchQuery = query,
             includeNotesInSearch = inputs.includeNotesInSearch,
             advancedFilters = inputs.advancedFilters,
             categorias = categorias,
@@ -145,7 +157,7 @@ class TareasViewModel @Inject constructor(
     }
 
     fun onSearchQueryChange(query: String) {
-        searchQuery.value = query
+        rawSearchQuery.value = query
     }
 
     fun onToggleIncludeNotesInSearch() {
@@ -167,5 +179,15 @@ class TareasViewModel @Inject constructor(
     fun retryLoadTasks() {
         userError.value = null
         refreshSignal.value = refreshSignal.value + 1
+    }
+
+    fun deleteTask(taskId: Long) {
+        viewModelScope.launch {
+            runCatching {
+                deleteTaskUseCase(taskId)
+            }.onFailure { throwable ->
+                userError.value = throwable.toUserError()
+            }
+        }
     }
 }

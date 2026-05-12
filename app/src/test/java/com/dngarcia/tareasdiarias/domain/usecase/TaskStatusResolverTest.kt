@@ -20,13 +20,13 @@ class TaskStatusResolverTest {
     }
 
     @Test
-    fun resolve_whenDueDateInNext24Hours_returnsProxima() {
+    fun resolve_whenTaskIsDueToday_returnsVencida() {
         val now = LocalDateTime.of(2026, 5, 6, 10, 0)
         val task = buildTask(dueAt = now.plusHours(8))
 
         val result = TaskStatusResolver.resolve(task = task, now = now)
 
-        assertEquals(TaskStatus.PROXIMA, result.status)
+        assertEquals(TaskStatus.VENCIDA, result.status)
     }
 
     @Test
@@ -52,7 +52,9 @@ class TaskStatusResolverTest {
             fechaCreacion = LocalDateTime.of(2026, 5, 1, 10, 0),
             fechaUltimaModificacion = LocalDateTime.of(2026, 5, 5, 10, 0),
             fechaProximaEjecucion = dueAt,
+            fechaVisibleDesde = dueAt.toLocalDate(),
             horaRecordatorio = null,
+            ultimaVezQueHiceLaTarea = null,
             cantidadPostergaciones = 0,
             estadoAlerta = EstadoAlerta.NORMAL,
             mensajeAlerta = null,

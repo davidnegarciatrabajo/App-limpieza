@@ -40,6 +40,7 @@ class TaskReminderPolicyTest {
             diasPeriodicidad = null,
             fechaInicio = LocalDate.of(2026, 5, 1),
             fechaProximaEjecucion = LocalDateTime.of(2026, 5, 15, 0, 0),
+            fechaVisibleDesde = LocalDate.of(2026, 5, 15),
             horaRecordatorio = LocalTime.of(9, 15),
             now = LocalDateTime.of(2026, 5, 8, 14, 30),
         )
@@ -54,6 +55,7 @@ class TaskReminderPolicyTest {
             diasPeriodicidad = null,
             fechaInicio = LocalDate.of(2026, 5, 1),
             fechaProximaEjecucion = LocalDateTime.of(2026, 5, 8, 0, 0),
+            fechaVisibleDesde = LocalDate.of(2026, 5, 8),
             horaRecordatorio = LocalTime.of(9, 0),
             now = LocalDateTime.of(2026, 5, 8, 14, 30),
         )
@@ -68,6 +70,7 @@ class TaskReminderPolicyTest {
             diasPeriodicidad = null,
             fechaInicio = LocalDate.of(2026, 5, 8),
             fechaProximaEjecucion = LocalDateTime.of(2026, 5, 8, 0, 0),
+            fechaVisibleDesde = LocalDate.of(2026, 5, 8),
             horaRecordatorio = LocalTime.of(8, 0),
             now = LocalDateTime.of(2026, 5, 8, 14, 30),
         )
@@ -100,8 +103,23 @@ class TaskReminderPolicyTest {
     }
 
     @Test
-    fun requiresExactAlarm_returnsTrueOnlyForUniqueTasks() {
-        assertEquals(true, TaskReminderPolicy.requiresExactAlarm(Periodicidad.UNICA))
-        assertEquals(false, TaskReminderPolicy.requiresExactAlarm(Periodicidad.DIARIA))
+    fun calculateReminderAt_whenTaskIsPostponed_usesAppearanceDateForNotification() {
+        val result = TaskReminderPolicy.calculateReminderAt(
+            periodicidad = Periodicidad.DIARIA,
+            diasPeriodicidad = null,
+            fechaInicio = LocalDate.of(2026, 5, 1),
+            fechaProximaEjecucion = LocalDateTime.of(2026, 5, 8, 0, 0),
+            fechaVisibleDesde = LocalDate.of(2026, 5, 11),
+            horaRecordatorio = LocalTime.of(9, 0),
+            now = LocalDateTime.of(2026, 5, 8, 14, 30),
+        )
+
+        assertEquals(LocalDateTime.of(2026, 5, 11, 9, 0), result)
+    }
+
+    @Test
+    fun requiresExactAlarm_returnsTrueWhenReminderHasTime() {
+        assertEquals(true, TaskReminderPolicy.requiresExactAlarm(LocalTime.of(9, 0)))
+        assertEquals(false, TaskReminderPolicy.requiresExactAlarm(null))
     }
 }

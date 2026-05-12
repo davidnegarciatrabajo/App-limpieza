@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class UndoTaskCompletionUseCaseTest {
@@ -41,6 +42,9 @@ class UndoTaskCompletionUseCaseTest {
 
         assertTrue(executionRepository.executions.isEmpty())
         assertEquals(LocalDateTime.of(2026, 5, 11, 0, 0), repository.updatedTask?.fechaProximaEjecucion)
+        assertEquals(LocalDate.of(2026, 5, 11), repository.updatedTask?.fechaVisibleDesde)
+        assertNull(repository.updatedTask?.ultimaVezQueHiceLaTarea)
+        assertEquals(6, repository.updatedTask?.cantidadPostergaciones)
         assertEquals(LocalDateTime.of(2026, 5, 12, 8, 0), scheduler.lastScheduledReminder?.reminderAt)
     }
 
@@ -71,7 +75,9 @@ class UndoTaskCompletionUseCaseTest {
             fechaCreacion = LocalDateTime.of(2026, 5, 1, 8, 0),
             fechaUltimaModificacion = LocalDateTime.of(2026, 5, 11, 9, 30),
             fechaProximaEjecucion = LocalDateTime.of(2026, 5, 12, 0, 0),
+            fechaVisibleDesde = LocalDate.of(2026, 5, 12),
             horaRecordatorio = LocalTime.of(8, 0),
+            ultimaVezQueHiceLaTarea = LocalDateTime.of(2026, 5, 11, 9, 30),
             cantidadPostergaciones = 0,
             estadoAlerta = EstadoAlerta.NORMAL,
             mensajeAlerta = null,
@@ -84,6 +90,8 @@ class UndoTaskCompletionUseCaseTest {
         }
 
         override suspend fun deleteById(id: Long) = Unit
+        override suspend fun getByCategoryId(categoryId: Long): List<Tarea> = emptyList()
+        override suspend fun countByCategoryId(categoryId: Long): Int = 0
         override suspend fun existsByNombre(nombre: String, excludeId: Long?): Boolean = false
     }
 
@@ -93,11 +101,18 @@ class UndoTaskCompletionUseCaseTest {
                 id = 1L,
                 tareaId = 7L,
                 fechaEjecucion = LocalDateTime.of(2026, 5, 11, 9, 30),
+                fechaCicloResuelto = LocalDate.of(2026, 5, 11),
                 completadaPorUsuario = true,
+                cantidadPostergacionesPrevias = 6,
             ),
         )
 
         override fun observeByTareaId(tareaId: Long): Flow<List<Ejecucion>> = emptyFlow()
+
+        override fun observeCompletedBetween(
+            startInclusive: LocalDateTime,
+            endInclusive: LocalDateTime,
+        ): Flow<List<Ejecucion>> = emptyFlow()
 
         override suspend fun getCompletedBetween(
             startInclusive: LocalDateTime,
@@ -110,6 +125,17 @@ class UndoTaskCompletionUseCaseTest {
             endInclusive: LocalDateTime,
         ): Ejecucion? = executions
             .filter { it.tareaId == tareaId && it.fechaEjecucion in startInclusive..endInclusive }
+            .maxByOrNull { it.fechaEjecucion }
+
+        override suspend fun getLatestCompletedForCycle(
+            tareaId: Long,
+            cycleDate: LocalDate,
+        ): Ejecucion? = executions
+            .filter { it.tareaId == tareaId && it.fechaCicloResuelto == cycleDate }
+            .maxByOrNull { it.fechaEjecucion }
+
+        override suspend fun getLatestCompletedByTaskId(tareaId: Long): Ejecucion? = executions
+            .filter { it.tareaId == tareaId }
             .maxByOrNull { it.fechaEjecucion }
 
         override suspend fun create(ejecucion: Ejecucion): Long {

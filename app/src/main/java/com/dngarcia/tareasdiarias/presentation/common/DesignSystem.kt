@@ -110,15 +110,19 @@ fun MetaPill(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun StatusText(status: TaskStatus, daysDelta: Long?, hoursUntilDue: Long?): String = when (status) {
-    TaskStatus.VENCIDA -> stringResource(id = R.string.task_status_overdue_days, daysDelta ?: 0L)
-    TaskStatus.PROXIMA -> stringResource(id = R.string.task_status_upcoming_hours, hoursUntilDue ?: 0L)
+fun StatusText(status: TaskStatus, daysDelta: Long?): String = when (status) {
+    TaskStatus.VENCIDA -> {
+        if ((daysDelta ?: 0L) == 0L) {
+            stringResource(id = R.string.task_status_due_today)
+        } else {
+            stringResource(id = R.string.task_status_overdue_days, daysDelta ?: 0L)
+        }
+    }
     TaskStatus.OK -> stringResource(id = R.string.task_status_ok)
 }
 
 fun TaskStatus.toUiColor(): Color = when (this) {
     TaskStatus.VENCIDA -> StatusOverdue
-    TaskStatus.PROXIMA -> StatusUpcoming
     TaskStatus.OK -> StatusOk
 }
 

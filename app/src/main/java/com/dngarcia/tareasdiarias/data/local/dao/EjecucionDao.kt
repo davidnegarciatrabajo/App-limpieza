@@ -22,6 +22,20 @@ interface EjecucionDao {
         ORDER BY fecha_ejecucion DESC
         """
     )
+    fun observeCompletedBetween(
+        startInclusive: java.time.LocalDateTime,
+        endInclusive: java.time.LocalDateTime,
+    ): Flow<List<EjecucionEntity>>
+
+    @Query(
+        """
+        SELECT * FROM ejecucion
+        WHERE completada_por_usuario = 1
+        AND fecha_ejecucion >= :startInclusive
+        AND fecha_ejecucion <= :endInclusive
+        ORDER BY fecha_ejecucion DESC
+        """
+    )
     suspend fun getCompletedBetween(
         startInclusive: java.time.LocalDateTime,
         endInclusive: java.time.LocalDateTime,
@@ -43,6 +57,32 @@ interface EjecucionDao {
         startInclusive: java.time.LocalDateTime,
         endInclusive: java.time.LocalDateTime,
     ): EjecucionEntity?
+
+    @Query(
+        """
+        SELECT * FROM ejecucion
+        WHERE tarea_id = :tareaId
+        AND completada_por_usuario = 1
+        AND fecha_ciclo_resuelto = :cycleDate
+        ORDER BY fecha_ejecucion DESC
+        LIMIT 1
+        """
+    )
+    suspend fun getLatestCompletedForCycle(
+        tareaId: Long,
+        cycleDate: java.time.LocalDate,
+    ): EjecucionEntity?
+
+    @Query(
+        """
+        SELECT * FROM ejecucion
+        WHERE tarea_id = :tareaId
+        AND completada_por_usuario = 1
+        ORDER BY fecha_ejecucion DESC
+        LIMIT 1
+        """
+    )
+    suspend fun getLatestCompletedByTaskId(tareaId: Long): EjecucionEntity?
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(ejecucion: EjecucionEntity): Long

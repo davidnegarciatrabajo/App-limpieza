@@ -11,6 +11,7 @@ import com.dngarcia.tareasdiarias.domain.model.Categoria
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.Tarea
 import com.dngarcia.tareasdiarias.domain.usecase.GetTaskByIdUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.DeleteTaskUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.ObserveCategoriasUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.UpdateTaskParams
 import com.dngarcia.tareasdiarias.domain.usecase.UpdateTaskUseCase
@@ -50,8 +51,10 @@ data class EditarTareaUiState(
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val showConfirmDialog: Boolean = false,
+    val showDeleteConfirmDialog: Boolean = false,
     val loadError: UserError? = null,
     val saveError: UserError? = null,
+    val deleteError: UserError? = null,
     val isTaskReady: Boolean = false,
 )
 
@@ -63,6 +66,7 @@ class EditarTareaViewModel @Inject constructor(
     private val getTaskByIdUseCase: GetTaskByIdUseCase,
     private val validateUniqueTaskNameUseCase: ValidateUniqueTaskNameUseCase,
     private val updateTaskUseCase: UpdateTaskUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase,
 ) : ViewModel() {
     private val taskId: Long = savedStateHandle[AppRoute.TASK_ID_ARG] ?: -1L
     private var originalTask: Tarea? = null
@@ -174,6 +178,14 @@ class EditarTareaViewModel @Inject constructor(
         _uiState.update { it.copy(showConfirmDialog = false) }
     }
 
+    fun onDeleteTaskClick() {
+        _uiState.update { it.copy(showDeleteConfirmDialog = true, deleteError = null) }
+    }
+
+    fun onDismissDeleteDialog() {
+        _uiState.update { it.copy(showDeleteConfirmDialog = false) }
+    }
+
     fun onConfirmSave() {
         viewModelScope.launch {
             val current = _uiState.value
@@ -261,6 +273,10 @@ class EditarTareaViewModel @Inject constructor(
         _uiState.update { it.copy(saveError = null) }
     }
 
+    fun dismissDeleteError() {
+        _uiState.update { it.copy(deleteError = null) }
+    }
+
     fun retryLoadTask() {
         dismissLoadError()
         _uiState.update { it.copy(isLoading = true) }
@@ -270,5 +286,21 @@ class EditarTareaViewModel @Inject constructor(
     fun retrySave() {
         dismissSaveError()
         onConfirmSave()
+    }
+
+    fun onConfirmDeleteTask() {
+        viewModelScope.launch {
+            val current = _uiState.value
+            _uiState.update { it.copy(isSaving = true, showDeleteConfirmDialog = false, deleteError = null) }
+            try {
+                deleteTaskUseCase(current.taskId)
+                _finishEvent.emit(Unit)
+            } catch (e: Exception) {
+                Log.e(TAG_EDITAR_TAREA, "Error al eliminar tarea", e)
+                _uiState.update { it.copy(deleteError = e.toUserError()) }
+            } finally {
+                _uiState.update { it.copy(isSaving = false) }
+            }
+        }
     }
 }

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import com.dngarcia.tareasdiarias.MainActivity
 import com.dngarcia.tareasdiarias.presentation.navigation.AppRoute
+import com.dngarcia.tareasdiarias.widget.today.postpone.PostponeTaskDialogActivity
 
 object TodayWidgetIntentFactory {
     const val ACTION_COMPLETE = "com.dngarcia.tareasdiarias.widget.ACTION_COMPLETE"
@@ -54,5 +55,20 @@ object TodayWidgetIntentFactory {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+    }
+
+    /**
+     * Abre el posponer en una tarea propia (`android:taskAffinity` en el manifiesto de
+     * `PostponeTaskDialogActivity`), sin `FLAG_ACTIVITY_CLEAR_TOP` para no reanudar ni
+     * vaciar la pila de `MainActivity`.
+     *
+     * Plan B (OEM raros): acciones en notificación que invoquen `PostponeTaskUseCase`
+     * desde un worker o receiver, sin depender de esta activity.
+     */
+    fun createOpenPostponeDialogIntent(context: Context, taskId: Long): Intent {
+        return Intent(context, PostponeTaskDialogActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION
+            putExtra(EXTRA_TASK_ID, taskId)
+        }
     }
 }

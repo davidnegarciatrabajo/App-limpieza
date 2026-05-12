@@ -21,6 +21,8 @@ interface TareaRepository {
     suspend fun create(tarea: Tarea): Long
     suspend fun update(tarea: Tarea)
     suspend fun deleteById(id: Long)
+    suspend fun getByCategoryId(categoryId: Long): List<Tarea>
+    suspend fun countByCategoryId(categoryId: Long): Int
     suspend fun existsByNombre(nombre: String, excludeId: Long? = null): Boolean
 }
 

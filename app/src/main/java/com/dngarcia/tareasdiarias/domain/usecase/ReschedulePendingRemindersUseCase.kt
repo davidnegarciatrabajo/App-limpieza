@@ -18,6 +18,7 @@ class ReschedulePendingRemindersUseCase @Inject constructor(
                 diasPeriodicidad = task.diasPeriodicidad,
                 fechaInicio = task.fechaInicio,
                 fechaProximaEjecucion = task.fechaProximaEjecucion,
+                fechaVisibleDesde = task.fechaVisibleDesde,
                 horaRecordatorio = task.horaRecordatorio,
                 now = now,
             ) ?: return@forEach
@@ -26,7 +27,7 @@ class ReschedulePendingRemindersUseCase @Inject constructor(
                     taskId = task.id,
                     taskTitle = task.nombre,
                     reminderAt = reminderAt,
-                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(task.tipoPeriodicidad),
+                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(task.horaRecordatorio),
                 ),
             )
         }

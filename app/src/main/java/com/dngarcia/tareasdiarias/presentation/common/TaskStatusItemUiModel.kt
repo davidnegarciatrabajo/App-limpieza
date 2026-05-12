@@ -8,9 +8,7 @@ import java.time.LocalDateTime
 data class TaskStatusItemUiModel(
     val task: Tarea,
     val status: TaskStatus,
-    val hoursUntilDue: Long?,
     val daysDelta: Long?,
-    val lastModifiedAt: LocalDateTime,
 )
 
 fun Tarea.toTaskStatusItemUiModel(now: LocalDateTime = LocalDateTime.now()): TaskStatusItemUiModel {
@@ -18,8 +16,6 @@ fun Tarea.toTaskStatusItemUiModel(now: LocalDateTime = LocalDateTime.now()): Tas
     return TaskStatusItemUiModel(
         task = this,
         status = statusInfo.status,
-        hoursUntilDue = statusInfo.hoursUntilDue,
         daysDelta = statusInfo.daysDelta,
-        lastModifiedAt = statusInfo.lastModifiedAt,
     )
 }

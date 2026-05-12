@@ -15,10 +15,12 @@ data class Tarea(
     val fechaInicio: LocalDate,
     val fechaCreacion: LocalDateTime,
     val fechaUltimaModificacion: LocalDateTime = fechaCreacion,
-    // `fechaProximaEjecucion` representa la fecha base visible en Today; `horaRecordatorio`
-    // solo agrega la hora exacta para la notificacion si el usuario la configuro.
+    // `fechaProximaEjecucion` representa el ciclo esperado real anclado en `fechaInicio`.
     val fechaProximaEjecucion: LocalDateTime?,
+    // `fechaVisibleDesde` controla cuando vuelve a aparecer en Today tras una postergacion.
+    val fechaVisibleDesde: LocalDate?,
     val horaRecordatorio: LocalTime?,
+    val ultimaVezQueHiceLaTarea: LocalDateTime?,
     val cantidadPostergaciones: Int,
     val estadoAlerta: EstadoAlerta,
     val mensajeAlerta: String?,

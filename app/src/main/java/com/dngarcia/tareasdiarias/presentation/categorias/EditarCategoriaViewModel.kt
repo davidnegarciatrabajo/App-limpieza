@@ -7,7 +7,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dngarcia.tareasdiarias.R
 import com.dngarcia.tareasdiarias.domain.model.Categoria
+import com.dngarcia.tareasdiarias.domain.usecase.DeleteCategoryUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.GetCategoriaByIdUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.GetTaskCountByCategoryUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.ObserveCategoriasUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.UpdateCategoriaUseCase
 import com.dngarcia.tareasdiarias.presentation.common.UserError
@@ -29,12 +31,16 @@ data class EditarCategoriaUiState(
     val categoriaId: Long = -1L,
     val nombre: String = "",
     val categorias: List<Categoria> = emptyList(),
+    val taskCount: Int = 0,
     val nombreError: String? = null,
     val isLoading: Boolean = true,
     val isCategoriaReady: Boolean = false,
     val loadError: UserError? = null,
     val isSaving: Boolean = false,
     val saveError: UserError? = null,
+    val showDeleteConfirmDialog: Boolean = false,
+    val showDeleteFinalConfirmDialog: Boolean = false,
+    val deleteError: UserError? = null,
 )
 
 private const val TAG_EDITAR_CATEGORIA = "EditarCategoriaViewModel"
@@ -45,7 +51,9 @@ class EditarCategoriaViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     observeCategoriasUseCase: ObserveCategoriasUseCase,
     private val getCategoriaByIdUseCase: GetCategoriaByIdUseCase,
+    private val getTaskCountByCategoryUseCase: GetTaskCountByCategoryUseCase,
     private val updateCategoriaUseCase: UpdateCategoriaUseCase,
+    private val deleteCategoryUseCase: DeleteCategoryUseCase,
 ) : ViewModel() {
 
     private val categoriaId: Long = savedStateHandle[AppRoute.CATEGORY_ID_ARG] ?: -1L
@@ -91,6 +99,7 @@ class EditarCategoriaViewModel @Inject constructor(
                         isLoading = false,
                         isCategoriaReady = true,
                         nombre = categoria.nombre,
+                        taskCount = categoriasTaskCount(categoria.id),
                         loadError = null,
                         nombreError = nombreDuplicadoMessage(
                             nombre = categoria.nombre,
@@ -171,6 +180,64 @@ class EditarCategoriaViewModel @Inject constructor(
 
     fun dismissSaveError() {
         _uiState.update { it.copy(saveError = null) }
+    }
+
+    fun onDeleteCategoryClick() {
+        _uiState.update {
+            it.copy(
+                showDeleteConfirmDialog = true,
+                showDeleteFinalConfirmDialog = false,
+                deleteError = null,
+            )
+        }
+    }
+
+    fun onDismissDeleteDialogs() {
+        _uiState.update {
+            it.copy(
+                showDeleteConfirmDialog = false,
+                showDeleteFinalConfirmDialog = false,
+            )
+        }
+    }
+
+    fun onConfirmDeleteStepOne() {
+        _uiState.update {
+            it.copy(
+                showDeleteConfirmDialog = false,
+                showDeleteFinalConfirmDialog = true,
+            )
+        }
+    }
+
+    fun onConfirmDeleteCategory() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isSaving = true,
+                    showDeleteConfirmDialog = false,
+                    showDeleteFinalConfirmDialog = false,
+                    deleteError = null,
+                )
+            }
+            try {
+                deleteCategoryUseCase(categoriaId)
+                _finishEvent.emit(Unit)
+            } catch (e: Exception) {
+                Log.e(TAG_EDITAR_CATEGORIA, "Error al eliminar categoria", e)
+                _uiState.update { it.copy(deleteError = e.toUserError()) }
+            } finally {
+                _uiState.update { it.copy(isSaving = false) }
+            }
+        }
+    }
+
+    private suspend fun categoriasTaskCount(categoryId: Long): Int {
+        return getTaskCountByCategoryUseCase(categoryId)
+    }
+
+    fun dismissDeleteError() {
+        _uiState.update { it.copy(deleteError = null) }
     }
 
     fun retryLoadCategoria() {

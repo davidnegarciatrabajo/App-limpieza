@@ -14,12 +14,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AssistChip
@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
@@ -73,12 +74,14 @@ import com.dngarcia.tareasdiarias.presentation.common.MainBottomBar
 import com.dngarcia.tareasdiarias.presentation.common.MainBottomDestination
 import com.dngarcia.tareasdiarias.presentation.common.AppTaskCard
 import com.dngarcia.tareasdiarias.presentation.common.AppTopBar
+import com.dngarcia.tareasdiarias.presentation.common.formatDueDateLabel
+import com.dngarcia.tareasdiarias.presentation.common.formatLastCompletionLabel
 import com.dngarcia.tareasdiarias.presentation.common.MetaPill
 import com.dngarcia.tareasdiarias.presentation.common.StatusDot
 import com.dngarcia.tareasdiarias.presentation.common.StatusText
 import com.dngarcia.tareasdiarias.presentation.common.toUiColor
+import com.dngarcia.tareasdiarias.domain.usecase.TaskTimelinePolicy
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun TareasRoute(
@@ -122,6 +125,7 @@ fun TareasRoute(
         onToggleIncludeNotesInSearch = viewModel::onToggleIncludeNotesInSearch,
         onAdvancedFiltersChange = viewModel::onAdvancedFiltersChange,
         onClearAdvancedFilters = viewModel::clearAdvancedFilters,
+        onDeleteTask = viewModel::deleteTask,
         onDismissUserError = viewModel::dismissUserError,
         onRetryLoadTasks = viewModel::retryLoadTasks,
         onOpenToday = onOpenToday,
@@ -148,6 +152,7 @@ fun TareasScreen(
     onToggleIncludeNotesInSearch: () -> Unit,
     onAdvancedFiltersChange: (TaskAdvancedFilters) -> Unit,
     onClearAdvancedFilters: () -> Unit,
+    onDeleteTask: (Long) -> Unit,
     onDismissUserError: () -> Unit,
     onRetryLoadTasks: () -> Unit,
     onOpenToday: () -> Unit,
@@ -157,6 +162,7 @@ fun TareasScreen(
     modifier: Modifier = Modifier,
 ) {
     var showAdvancedFiltersDialog by rememberSaveable { mutableStateOf(false) }
+    var taskPendingDeletion by remember { mutableStateOf<TaskStatusItemUiModel?>(null) }
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
@@ -173,6 +179,29 @@ fun TareasScreen(
             SnackbarResult.ActionPerformed -> onRetryLoadTasks()
             SnackbarResult.Dismissed -> onDismissUserError()
         }
+    }
+
+    taskPendingDeletion?.let { task ->
+        AlertDialog(
+            onDismissRequest = { taskPendingDeletion = null },
+            title = { Text(text = stringResource(id = R.string.task_delete_confirm_title)) },
+            text = { Text(text = stringResource(id = R.string.task_delete_confirm_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteTask(task.task.id)
+                        taskPendingDeletion = null
+                    },
+                ) {
+                    Text(text = stringResource(id = R.string.task_delete_confirm_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { taskPendingDeletion = null }) {
+                    Text(text = stringResource(id = R.string.task_cancel))
+                }
+            },
+        )
     }
 
     Scaffold(
@@ -224,60 +253,54 @@ fun TareasScreen(
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
-            item {
-                if (uiState.topPendingTasks.isEmpty()) {
+            if (uiState.topPendingTasks.isEmpty()) {
+                item {
                     Text(text = stringResource(id = R.string.tasks_empty_state))
-                } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        uiState.topPendingTasks.forEach { task ->
-                            TaskListRow(
-                                task = task,
-                                onClick = { onTaskClick(task.task.id) },
-                            )
-                        }
-                    }
+                }
+            } else {
+                items(
+                    items = uiState.topPendingTasks,
+                    key = { "top_${it.task.id}" },
+                ) { task ->
+                    TaskListRow(
+                        task = task,
+                        onClick = { onTaskClick(task.task.id) },
+                        onDeleteClick = { taskPendingDeletion = task },
+                    )
                 }
             }
             item {
-                Text(
-                    text = stringResource(id = R.string.tasks_search_title),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            item {
-                SearchSection(
-                    searchQuery = uiState.searchQuery,
-                    includeNotesInSearch = uiState.includeNotesInSearch,
-                    hasActiveAdvancedFilters = uiState.hasActiveAdvancedFilters,
-                    onSearchQueryChange = onSearchQueryChange,
-                    onToggleIncludeNotesInSearch = onToggleIncludeNotesInSearch,
-                    onOpenAdvancedFilters = { showAdvancedFiltersDialog = true },
-                    onClearAdvancedFilters = onClearAdvancedFilters,
-                )
-            }
-            item {
-                Text(
-                    text = stringResource(id = R.string.tasks_filter_title),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            item {
-                PeriodicityFilterRow(
-                    selectedFilter = uiState.selectedFilter,
-                    onFilterSelected = onFilterSelected,
-                )
-            }
-            item {
-                Text(
-                    text = stringResource(id = R.string.tasks_sort_title),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            item {
-                SortOrderRow(
-                    selectedSortOrder = uiState.selectedSortOrder,
-                    onSortOrderSelected = onSortOrderSelected,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = stringResource(id = R.string.tasks_search_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    SearchSection(
+                        searchQuery = uiState.searchQuery,
+                        includeNotesInSearch = uiState.includeNotesInSearch,
+                        hasActiveAdvancedFilters = uiState.hasActiveAdvancedFilters,
+                        onSearchQueryChange = onSearchQueryChange,
+                        onToggleIncludeNotesInSearch = onToggleIncludeNotesInSearch,
+                        onOpenAdvancedFilters = { showAdvancedFiltersDialog = true },
+                        onClearAdvancedFilters = onClearAdvancedFilters,
+                    )
+                    Text(
+                        text = stringResource(id = R.string.tasks_filter_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    PeriodicityFilterRow(
+                        selectedFilter = uiState.selectedFilter,
+                        onFilterSelected = onFilterSelected,
+                    )
+                    Text(
+                        text = stringResource(id = R.string.tasks_sort_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    SortOrderRow(
+                        selectedSortOrder = uiState.selectedSortOrder,
+                        onSortOrderSelected = onSortOrderSelected,
+                    )
+                }
             }
             item {
                 Text(
@@ -290,7 +313,7 @@ fun TareasScreen(
                     Text(text = stringResource(id = R.string.task_loading))
                 }
             }
-            if (uiState.filteredTasks.isEmpty()) {
+            if (uiState.filteredTasks.isEmpty() && !uiState.isLoading) {
                 item {
                     val emptyMessage = if (uiState.hasActiveSearch || uiState.hasActiveAdvancedFilters) {
                         stringResource(id = R.string.tasks_empty_filters_state)
@@ -302,11 +325,12 @@ fun TareasScreen(
             } else {
                 items(
                     items = uiState.filteredTasks,
-                    key = { it.task.id },
+                    key = { "main_${it.task.id}" },
                 ) { task ->
                     TaskListRow(
                         task = task,
                         onClick = { onTaskClick(task.task.id) },
+                        onDeleteClick = { taskPendingDeletion = task },
                     )
                 }
             }
@@ -569,38 +593,85 @@ private fun SortOrderRow(
     onSortOrderSelected: (TaskSortOrder) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    val chipLabelStyle = MaterialTheme.typography.labelSmall
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        AssistChip(
-            onClick = { onSortOrderSelected(TaskSortOrder.HIGHEST_DELAY) },
-            label = { Text(text = stringResource(id = R.string.tasks_sort_highest_delay)) },
-            leadingIcon = {
-                if (selectedSortOrder == TaskSortOrder.HIGHEST_DELAY) {
-                    Text(text = "✓")
-                }
-            },
-        )
-        AssistChip(
-            onClick = { onSortOrderSelected(TaskSortOrder.OLDEST_FIRST) },
-            label = { Text(text = stringResource(id = R.string.tasks_sort_oldest)) },
-            leadingIcon = {
-                if (selectedSortOrder == TaskSortOrder.OLDEST_FIRST) {
-                    Text(text = "✓")
-                }
-            },
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SortOrderChip(
+                label = stringResource(id = R.string.tasks_sort_recent),
+                selected = selectedSortOrder == TaskSortOrder.RECENT,
+                onClick = { onSortOrderSelected(TaskSortOrder.RECENT) },
+                labelStyle = chipLabelStyle,
+                modifier = Modifier.weight(1f),
+            )
+            SortOrderChip(
+                label = stringResource(id = R.string.tasks_sort_oldest),
+                selected = selectedSortOrder == TaskSortOrder.OLDEST,
+                onClick = { onSortOrderSelected(TaskSortOrder.OLDEST) },
+                labelStyle = chipLabelStyle,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SortOrderChip(
+                label = stringResource(id = R.string.tasks_sort_due_date),
+                selected = selectedSortOrder == TaskSortOrder.DUE_DATE,
+                onClick = { onSortOrderSelected(TaskSortOrder.DUE_DATE) },
+                labelStyle = chipLabelStyle,
+                modifier = Modifier.weight(1f),
+            )
+            SortOrderChip(
+                label = stringResource(id = R.string.tasks_sort_postponed),
+                selected = selectedSortOrder == TaskSortOrder.POSTPONED,
+                onClick = { onSortOrderSelected(TaskSortOrder.POSTPONED) },
+                labelStyle = chipLabelStyle,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
+}
+
+@Composable
+private fun SortOrderChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    labelStyle: TextStyle,
+    modifier: Modifier = Modifier,
+) {
+    AssistChip(
+        onClick = onClick,
+        label = {
+            Text(
+                text = label,
+                style = labelStyle,
+                maxLines = 2,
+            )
+        },
+        leadingIcon = {
+            if (selected) {
+                Text(text = "✓", style = labelStyle)
+            }
+        },
+        modifier = modifier.fillMaxWidth(),
+    )
 }
 
 @Composable
 private fun TaskListRow(
     task: TaskStatusItemUiModel,
     onClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
     AppTaskCard(
         modifier = modifier
             .clickable(onClick = onClick),
@@ -619,6 +690,15 @@ private fun TaskListRow(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.testTag(TareasScreenTestTags.taskRowTestTag(task.task.id)),
                 )
+                if (task.task.subtitulo.isNotBlank()) {
+                    Text(
+                        text = task.task.subtitulo,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                MetaPill(text = formatLastCompletionLabel(task.task.ultimaVezQueHiceLaTarea))
+                MetaPill(text = formatDueDateLabel(TaskTimelinePolicy.expectedCycleDate(task.task)))
                 MetaPill(
                     text = stringResource(
                         id = R.string.tasks_postponements_count,
@@ -629,18 +709,16 @@ private fun TaskListRow(
                     text = StatusText(
                         status = task.status,
                         daysDelta = task.daysDelta,
-                        hoursUntilDue = task.hoursUntilDue,
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = task.status.toUiColor(),
                 )
-                Text(
-                    text = stringResource(
-                        id = R.string.task_last_modified,
-                        task.lastModifiedAt.format(dateFormatter),
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                TextButton(
+                    onClick = onDeleteClick,
+                    modifier = Modifier.padding(start = 0.dp),
+                ) {
+                    Text(text = stringResource(id = R.string.task_delete_action))
+                }
             }
         }
     }
@@ -666,6 +744,7 @@ private fun TareasScreenPreview() {
         onToggleIncludeNotesInSearch = {},
         onAdvancedFiltersChange = {},
         onClearAdvancedFilters = {},
+        onDeleteTask = {},
         onDismissUserError = {},
         onRetryLoadTasks = {},
         onOpenToday = {},
@@ -740,7 +819,6 @@ private fun Context.findActivity(): Activity? {
 @Composable
 private fun TaskStatus.toLabel(): String = when (this) {
     TaskStatus.OK -> stringResource(id = R.string.task_status_filter_ok)
-    TaskStatus.PROXIMA -> stringResource(id = R.string.task_status_filter_upcoming)
     TaskStatus.VENCIDA -> stringResource(id = R.string.task_status_filter_overdue)
 }
 
@@ -765,10 +843,13 @@ private fun mockTask(id: Long): TaskStatusItemUiModel {
         fechaCreacion = LocalDateTime.now(),
         fechaUltimaModificacion = LocalDateTime.now(),
         fechaProximaEjecucion = LocalDateTime.now().plusHours(8),
+        fechaVisibleDesde = LocalDateTime.now().toLocalDate(),
         horaRecordatorio = null,
+        ultimaVezQueHiceLaTarea = null,
         cantidadPostergaciones = 2,
         estadoAlerta = com.dngarcia.tareasdiarias.domain.model.EstadoAlerta.NORMAL,
         mensajeAlerta = null,
     )
     return task.toTaskStatusItemUiModel()
 }
+

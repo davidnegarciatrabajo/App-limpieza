@@ -2,18 +2,15 @@ package com.dngarcia.tareasdiarias.presentation.today
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.dngarcia.tareasdiarias.domain.model.TaskReminder
-import com.dngarcia.tareasdiarias.domain.model.TaskPeriodicityFilter
-import com.dngarcia.tareasdiarias.domain.model.TaskSortOrder
-import com.dngarcia.tareasdiarias.domain.usecase.CancelTaskReminderUseCase
-import com.dngarcia.tareasdiarias.domain.usecase.ObserveCategoriasUseCase
-import com.dngarcia.tareasdiarias.domain.usecase.ObservePendingTasksUseCase
-import com.dngarcia.tareasdiarias.domain.usecase.ScheduleTaskReminderUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.CompleteTaskUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.ObserveTodayTasksUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.PostponeTaskUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.UndoTaskCompletionUseCase
 import com.dngarcia.tareasdiarias.presentation.common.TaskStatusItemUiModel
 import com.dngarcia.tareasdiarias.presentation.common.UserError
-import com.dngarcia.tareasdiarias.presentation.common.toTaskStatusItemUiModel
 import com.dngarcia.tareasdiarias.presentation.common.toUserError
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +22,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 
 data class TodayUiState(
     val tasks: List<TodayTaskUiModel> = emptyList(),
@@ -36,28 +32,32 @@ data class TodayUiState(
 data class TodayTaskUiModel(
     val item: TaskStatusItemUiModel,
     val categoryName: String,
+    val completedToday: Boolean,
 )
 
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
 class TodayViewModel @Inject constructor(
-    observePendingTasksUseCase: ObservePendingTasksUseCase,
-    observeCategoriasUseCase: ObserveCategoriasUseCase,
-    private val scheduleTaskReminderUseCase: ScheduleTaskReminderUseCase,
-    private val cancelTaskReminderUseCase: CancelTaskReminderUseCase,
+    observeTodayTasksUseCase: ObserveTodayTasksUseCase,
+    private val completeTaskUseCase: CompleteTaskUseCase,
+    private val undoTaskCompletionUseCase: UndoTaskCompletionUseCase,
+    private val postponeTaskUseCase: PostponeTaskUseCase,
 ) : ViewModel() {
     private val userError = MutableStateFlow<UserError?>(null)
     private val refreshSignal = MutableStateFlow(0)
 
     private val tasksFlow = refreshSignal.flatMapLatest {
-        observePendingTasksUseCase(
-            filter = TaskPeriodicityFilter.ALL,
-            sortOrder = TaskSortOrder.HIGHEST_DELAY,
-        ).map { tasks ->
-            val today = LocalDateTime.now().toLocalDate()
-            tasks.filter { task ->
-                val dueDate = task.fechaProximaEjecucion?.toLocalDate() ?: return@filter false
-                !dueDate.isAfter(today)
+        observeTodayTasksUseCase().map { tasks ->
+            tasks.map { task ->
+                TodayTaskUiModel(
+                    item = TaskStatusItemUiModel(
+                        task = task.task,
+                        status = task.status,
+                        daysDelta = task.daysDelta,
+                    ),
+                    categoryName = task.categoryName,
+                    completedToday = task.completedToday,
+                )
             }
         }.catch { throwable ->
             userError.value = throwable.toUserError()
@@ -66,18 +66,11 @@ class TodayViewModel @Inject constructor(
     }
 
     val uiState: StateFlow<TodayUiState> = combine(
-        tasksFlow.map { tasks -> tasks.map { it.toTaskStatusItemUiModel() } },
-        observeCategoriasUseCase(),
+        tasksFlow,
         userError,
-    ) { tasks, categories, err ->
-        val categoriesById = categories.associateBy { it.id }
+    ) { tasks, err ->
         TodayUiState(
-            tasks = tasks.map { task ->
-                TodayTaskUiModel(
-                    item = task,
-                    categoryName = categoriesById[task.task.categoriaId]?.nombre.orEmpty(),
-                )
-            },
+            tasks = tasks,
             userError = err,
             isLoading = false,
         )
@@ -96,31 +89,36 @@ class TodayViewModel @Inject constructor(
         refreshSignal.value = refreshSignal.value + 1
     }
 
-    fun upsertTaskReminder(
-        taskId: Long,
-        taskTitle: String,
-        reminderAt: LocalDateTime?,
-    ) {
+    fun completeTask(taskId: Long) {
         viewModelScope.launch {
-            if (reminderAt == null) {
-                cancelTaskReminderUseCase(taskId)
-                return@launch
+            runCatching {
+                completeTaskUseCase(taskId = taskId)
+            }.onFailure { throwable ->
+                userError.value = throwable.toUserError()
             }
-
-            scheduleTaskReminderUseCase(
-                reminder = TaskReminder(
-                    taskId = taskId,
-                    taskTitle = taskTitle,
-                    reminderAt = reminderAt,
-                    requiresExactScheduling = false,
-                ),
-            )
         }
     }
 
-    fun deleteTask(taskId: Long) {
+    fun undoTask(taskId: Long) {
         viewModelScope.launch {
-            cancelTaskReminderUseCase(taskId)
+            runCatching {
+                undoTaskCompletionUseCase(taskId = taskId)
+            }.onFailure { throwable ->
+                userError.value = throwable.toUserError()
+            }
+        }
+    }
+
+    fun postponeTask(taskId: Long, postponedUntil: LocalDate) {
+        viewModelScope.launch {
+            runCatching {
+                postponeTaskUseCase(
+                    taskId = taskId,
+                    postponedUntil = postponedUntil,
+                )
+            }.onFailure { throwable ->
+                userError.value = throwable.toUserError()
+            }
         }
     }
 }

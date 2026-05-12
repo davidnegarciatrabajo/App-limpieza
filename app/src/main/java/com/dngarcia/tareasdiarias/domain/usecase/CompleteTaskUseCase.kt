@@ -18,6 +18,7 @@ class CompleteTaskUseCase @Inject constructor(
         completedAt: LocalDateTime = LocalDateTime.now(),
     ) {
         val task = tareaRepository.getById(taskId) ?: return
+        val resolvedCycleDate = TaskTimelinePolicy.expectedCycleDate(task) ?: completedAt.toLocalDate()
         val dayStart = completedAt.toLocalDate().atStartOfDay()
         val dayEnd = completedAt.toLocalDate().plusDays(1).atStartOfDay().minusNanos(1)
         val existingExecution = ejecucionRepository.getLatestCompletedBetween(
@@ -32,7 +33,9 @@ class CompleteTaskUseCase @Inject constructor(
                 id = 0L,
                 tareaId = taskId,
                 fechaEjecucion = completedAt,
+                fechaCicloResuelto = resolvedCycleDate,
                 completadaPorUsuario = true,
+                cantidadPostergacionesPrevias = task.cantidadPostergaciones,
             ),
         )
 
@@ -45,6 +48,9 @@ class CompleteTaskUseCase @Inject constructor(
         val updatedTask = task.copy(
             fechaUltimaModificacion = completedAt,
             fechaProximaEjecucion = nextExecutionAt,
+            fechaVisibleDesde = TaskTimelinePolicy.defaultVisibleFrom(nextExecutionAt),
+            ultimaVezQueHiceLaTarea = completedAt,
+            cantidadPostergaciones = 0,
         )
         tareaRepository.update(updatedTask)
 
@@ -53,6 +59,7 @@ class CompleteTaskUseCase @Inject constructor(
             diasPeriodicidad = updatedTask.diasPeriodicidad,
             fechaInicio = updatedTask.fechaInicio,
             fechaProximaEjecucion = updatedTask.fechaProximaEjecucion,
+            fechaVisibleDesde = updatedTask.fechaVisibleDesde,
             horaRecordatorio = updatedTask.horaRecordatorio,
             now = completedAt,
         )
@@ -65,7 +72,7 @@ class CompleteTaskUseCase @Inject constructor(
                     taskId = taskId,
                     taskTitle = updatedTask.nombre,
                     reminderAt = reminderAt,
-                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(updatedTask.tipoPeriodicidad),
+                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(updatedTask.horaRecordatorio),
                 ),
             )
         }

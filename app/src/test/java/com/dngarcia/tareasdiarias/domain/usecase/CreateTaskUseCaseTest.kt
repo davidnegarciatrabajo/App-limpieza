@@ -44,7 +44,7 @@ class CreateTaskUseCaseTest {
         assertEquals("Encimera y hornallas", fakeRepository.lastCreatedTask?.subtitulo)
         assertEquals(LocalDate.of(2026, 5, 8), fakeRepository.lastCreatedTask?.fechaInicio)
         assertNotNull(fakeScheduler.lastScheduledReminder)
-        assertEquals(false, fakeScheduler.lastScheduledReminder?.requiresExactScheduling)
+        assertEquals(true, fakeScheduler.lastScheduledReminder?.requiresExactScheduling)
     }
 
     private class FakeTareaRepository : TareaRepository {
@@ -67,6 +67,8 @@ class CreateTaskUseCaseTest {
         }
         override suspend fun update(tarea: Tarea) = Unit
         override suspend fun deleteById(id: Long) = Unit
+        override suspend fun getByCategoryId(categoryId: Long): List<Tarea> = emptyList()
+        override suspend fun countByCategoryId(categoryId: Long): Int = 0
         override suspend fun existsByNombre(nombre: String, excludeId: Long?): Boolean = false
     }
 

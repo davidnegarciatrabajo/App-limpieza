@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CompleteTaskUseCaseTest {
@@ -41,14 +42,39 @@ class CompleteTaskUseCaseTest {
         )
 
         assertEquals(1, executionRepository.executions.size)
-        assertEquals(completedAt, executionRepository.executions.single().fechaEjecucion)
+        val savedExecution = executionRepository.executions.single()
+        assertEquals(completedAt, savedExecution.fechaEjecucion)
+        assertEquals(0, savedExecution.cantidadPostergacionesPrevias)
         assertEquals(LocalDateTime.of(2026, 5, 12, 0, 0), repository.updatedTask?.fechaProximaEjecucion)
+        assertEquals(LocalDate.of(2026, 5, 12), repository.updatedTask?.fechaVisibleDesde)
+        assertEquals(0, repository.updatedTask?.cantidadPostergaciones)
         assertNotNull(scheduler.lastScheduledReminder)
         assertEquals(LocalDateTime.of(2026, 5, 12, 8, 0), scheduler.lastScheduledReminder?.reminderAt)
+        assertTrue(scheduler.lastScheduledReminder?.requiresExactScheduling == true)
+    }
+
+    @Test
+    fun invoke_resetsPostponementCountAndPersistsPreviousOnExecution() = runBlocking {
+        val repository = FakeTareaRepository().apply { cantidadPostergacionesOnTask = 4 }
+        val executionRepository = FakeEjecucionRepository()
+        val scheduler = FakeTaskReminderScheduler()
+        val useCase = CompleteTaskUseCase(
+            tareaRepository = repository,
+            ejecucionRepository = executionRepository,
+            scheduleTaskReminderUseCase = ScheduleTaskReminderUseCase(scheduler),
+            cancelTaskReminderUseCase = CancelTaskReminderUseCase(scheduler),
+        )
+        val completedAt = LocalDateTime.of(2026, 5, 11, 9, 30)
+
+        useCase(taskId = 7L, completedAt = completedAt)
+
+        assertEquals(4, executionRepository.executions.single().cantidadPostergacionesPrevias)
+        assertEquals(0, repository.updatedTask?.cantidadPostergaciones)
     }
 
     private class FakeTareaRepository : TareaRepository {
         var updatedTask: Tarea? = null
+        var cantidadPostergacionesOnTask: Int = 0
 
         override fun observeAll(): Flow<List<Tarea>> = emptyFlow()
         override fun observeTopPending(limit: Int): Flow<List<Tarea>> = emptyFlow()
@@ -74,8 +100,10 @@ class CompleteTaskUseCaseTest {
             fechaCreacion = LocalDateTime.of(2026, 5, 1, 8, 0),
             fechaUltimaModificacion = LocalDateTime.of(2026, 5, 10, 8, 0),
             fechaProximaEjecucion = LocalDateTime.of(2026, 5, 11, 0, 0),
+            fechaVisibleDesde = LocalDate.of(2026, 5, 11),
             horaRecordatorio = LocalTime.of(8, 0),
-            cantidadPostergaciones = 0,
+            ultimaVezQueHiceLaTarea = null,
+            cantidadPostergaciones = cantidadPostergacionesOnTask,
             estadoAlerta = EstadoAlerta.NORMAL,
             mensajeAlerta = null,
         )
@@ -87,6 +115,8 @@ class CompleteTaskUseCaseTest {
         }
 
         override suspend fun deleteById(id: Long) = Unit
+        override suspend fun getByCategoryId(categoryId: Long): List<Tarea> = emptyList()
+        override suspend fun countByCategoryId(categoryId: Long): Int = 0
         override suspend fun existsByNombre(nombre: String, excludeId: Long?): Boolean = false
     }
 
@@ -94,6 +124,11 @@ class CompleteTaskUseCaseTest {
         val executions = mutableListOf<Ejecucion>()
 
         override fun observeByTareaId(tareaId: Long): Flow<List<Ejecucion>> = emptyFlow()
+
+        override fun observeCompletedBetween(
+            startInclusive: LocalDateTime,
+            endInclusive: LocalDateTime,
+        ): Flow<List<Ejecucion>> = emptyFlow()
 
         override suspend fun getCompletedBetween(
             startInclusive: LocalDateTime,
@@ -106,6 +141,17 @@ class CompleteTaskUseCaseTest {
             endInclusive: LocalDateTime,
         ): Ejecucion? = executions
             .filter { it.tareaId == tareaId && it.fechaEjecucion in startInclusive..endInclusive }
+            .maxByOrNull { it.fechaEjecucion }
+
+        override suspend fun getLatestCompletedForCycle(
+            tareaId: Long,
+            cycleDate: LocalDate,
+        ): Ejecucion? = executions
+            .filter { it.tareaId == tareaId && it.fechaCicloResuelto == cycleDate }
+            .maxByOrNull { it.fechaEjecucion }
+
+        override suspend fun getLatestCompletedByTaskId(tareaId: Long): Ejecucion? = executions
+            .filter { it.tareaId == tareaId }
             .maxByOrNull { it.fechaEjecucion }
 
         override suspend fun create(ejecucion: Ejecucion): Long {

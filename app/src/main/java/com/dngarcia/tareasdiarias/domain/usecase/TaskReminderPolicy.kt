@@ -55,12 +55,17 @@ object TaskReminderPolicy {
         diasPeriodicidad: Int?,
         fechaInicio: LocalDate,
         fechaProximaEjecucion: LocalDateTime?,
+        fechaVisibleDesde: LocalDate?,
         horaRecordatorio: LocalTime?,
         now: LocalDateTime,
     ): LocalDateTime? {
         if (horaRecordatorio == null) return null
 
-        val dueDate = fechaProximaEjecucion?.toLocalDate()
+        val expectedDate = fechaProximaEjecucion?.toLocalDate()
+        val dueDate = TaskTimelinePolicy.effectiveAppearanceDate(
+            expectedCycleAt = fechaProximaEjecucion,
+            visibleFrom = fechaVisibleDesde,
+        )
             ?: calculateNextExecutionAt(
                 periodicidad = periodicidad,
                 diasPeriodicidad = diasPeriodicidad,
@@ -71,7 +76,17 @@ object TaskReminderPolicy {
 
         val scheduledAt = dueDate.atTime(horaRecordatorio)
         if (scheduledAt.isAfter(now)) return scheduledAt
-        if (periodicidad == Periodicidad.UNICA) return null
+        if (periodicidad == Periodicidad.UNICA) {
+            return if (expectedDate != null && fechaVisibleDesde != null && fechaVisibleDesde.isAfter(expectedDate)) {
+                scheduledAt
+            } else {
+                null
+            }
+        }
+
+        if (expectedDate != null && fechaVisibleDesde != null && fechaVisibleDesde.isAfter(expectedDate)) {
+            return scheduledAt
+        }
 
         var nextDate = dueDate
         while (!nextDate.atTime(horaRecordatorio).isAfter(now)) {
@@ -84,8 +99,8 @@ object TaskReminderPolicy {
         return nextDate.atTime(horaRecordatorio)
     }
 
-    fun requiresExactAlarm(periodicidad: Periodicidad): Boolean {
-        return periodicidad == Periodicidad.UNICA
+    fun requiresExactAlarm(horaRecordatorio: LocalTime?): Boolean {
+        return horaRecordatorio != null
     }
 
     private fun latestOccurrenceOnOrBefore(

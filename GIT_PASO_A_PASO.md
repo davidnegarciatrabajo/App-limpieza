@@ -163,3 +163,4 @@ git log --oneline -n 5
 Resultado esperado al final:
 - `Your branch is up to date with 'origin/main'`
 - `nothing to commit, working tree clean`
+  

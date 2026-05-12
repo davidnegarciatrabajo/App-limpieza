@@ -3,6 +3,7 @@ package com.dngarcia.tareasdiarias.domain.usecase
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
 import javax.inject.Inject
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 class PostponeTaskUseCase @Inject constructor(
@@ -12,17 +13,16 @@ class PostponeTaskUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(
         taskId: Long,
+        postponedUntil: LocalDate = LocalDate.now().plusDays(1),
         referenceTime: LocalDateTime = LocalDateTime.now(),
     ) {
         val task = tareaRepository.getById(taskId) ?: return
-        val baseDate = maxOf(
-            task.fechaProximaEjecucion?.toLocalDate() ?: referenceTime.toLocalDate(),
-            referenceTime.toLocalDate(),
-        )
-        val updatedDueDate = baseDate.plusDays(1).atStartOfDay()
+        require(postponedUntil.isAfter(referenceTime.toLocalDate())) {
+            "La postergacion debe ser posterior a la fecha actual."
+        }
         val updatedTask = task.copy(
             fechaUltimaModificacion = referenceTime,
-            fechaProximaEjecucion = updatedDueDate,
+            fechaVisibleDesde = postponedUntil,
             cantidadPostergaciones = task.cantidadPostergaciones + 1,
         )
         tareaRepository.update(updatedTask)
@@ -32,6 +32,7 @@ class PostponeTaskUseCase @Inject constructor(
             diasPeriodicidad = updatedTask.diasPeriodicidad,
             fechaInicio = updatedTask.fechaInicio,
             fechaProximaEjecucion = updatedTask.fechaProximaEjecucion,
+            fechaVisibleDesde = updatedTask.fechaVisibleDesde,
             horaRecordatorio = updatedTask.horaRecordatorio,
             now = referenceTime,
         )
@@ -43,7 +44,7 @@ class PostponeTaskUseCase @Inject constructor(
                     taskId = taskId,
                     taskTitle = updatedTask.nombre,
                     reminderAt = reminderAt,
-                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(updatedTask.tipoPeriodicidad),
+                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(updatedTask.horaRecordatorio),
                 ),
             )
         }

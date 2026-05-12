@@ -69,8 +69,12 @@ fun EditarTareaRoute(
         onConfirmModificationClick = viewModel::onConfirmModificationClick,
         onDismissConfirmDialog = viewModel::onDismissConfirmDialog,
         onConfirmSave = viewModel::onConfirmSave,
+        onDeleteTaskClick = viewModel::onDeleteTaskClick,
+        onDismissDeleteDialog = viewModel::onDismissDeleteDialog,
+        onConfirmDeleteTask = viewModel::onConfirmDeleteTask,
         onDismissLoadError = viewModel::dismissLoadError,
         onDismissSaveError = viewModel::dismissSaveError,
+        onDismissDeleteError = viewModel::dismissDeleteError,
         onRetryLoadTask = viewModel::retryLoadTask,
         onRetrySave = viewModel::retrySave,
     )
@@ -93,8 +97,12 @@ fun EditarTareaScreen(
     onConfirmModificationClick: () -> Unit,
     onDismissConfirmDialog: () -> Unit,
     onConfirmSave: () -> Unit,
+    onDeleteTaskClick: () -> Unit,
+    onDismissDeleteDialog: () -> Unit,
+    onConfirmDeleteTask: () -> Unit,
     onDismissLoadError: () -> Unit,
     onDismissSaveError: () -> Unit,
+    onDismissDeleteError: () -> Unit,
     onRetryLoadTask: () -> Unit,
     onRetrySave: () -> Unit,
     modifier: Modifier = Modifier,
@@ -132,6 +140,14 @@ fun EditarTareaScreen(
         }
     }
 
+    LaunchedEffect(uiState.deleteError) {
+        val err = uiState.deleteError ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(
+            message = context.getString(err.messageResId, *err.formatArgs),
+        )
+        onDismissDeleteError()
+    }
+
     if (uiState.showConfirmDialog) {
         AlertDialog(
             onDismissRequest = onDismissConfirmDialog,
@@ -144,6 +160,24 @@ fun EditarTareaScreen(
             },
             dismissButton = {
                 TextButton(onClick = onDismissConfirmDialog) {
+                    Text(stringResource(id = R.string.task_cancel))
+                }
+            },
+        )
+    }
+
+    if (uiState.showDeleteConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = onDismissDeleteDialog,
+            title = { Text(stringResource(id = R.string.task_delete_confirm_title)) },
+            text = { Text(stringResource(id = R.string.task_delete_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = onConfirmDeleteTask) {
+                    Text(stringResource(id = R.string.task_delete_confirm_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissDeleteDialog) {
                     Text(stringResource(id = R.string.task_cancel))
                 }
             },
@@ -306,6 +340,13 @@ fun EditarTareaScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(stringResource(id = R.string.task_confirm_modification))
+            }
+            TextButton(
+                onClick = onDeleteTaskClick,
+                enabled = !uiState.isSaving,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(id = R.string.task_delete_action))
             }
             TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(id = R.string.task_back_without_save))

@@ -32,8 +32,9 @@ class TareaRepositoryImpl @Inject constructor(
         includeNotesInSearch: Boolean,
         advancedFilters: TaskAdvancedFilters,
     ): Flow<List<Tarea>> {
-        val now = LocalDateTime.now()
         val today = LocalDate.now()
+        val todayStart = today.atStartOfDay()
+        val todayEnd = today.plusDays(1).atStartOfDay().minusNanos(1)
         return tareaDao.observePendingByFilterAndSort(
             filter = filter.name,
             sortOrder = sortOrder.name,
@@ -42,11 +43,10 @@ class TareaRepositoryImpl @Inject constructor(
             statusFilter = advancedFilters.status?.name,
             datePreset = advancedFilters.datePreset.name,
             categoryId = advancedFilters.categoryId,
-            upcomingThreshold = now.plusHours(24),
-            todayStart = today.atStartOfDay(),
-            todayEnd = today.plusDays(1).atStartOfDay().minusNanos(1),
-            next7DaysEnd = now.plusDays(7),
-            next30DaysEnd = now.plusDays(30),
+            todayStart = todayStart,
+            todayEnd = todayEnd,
+            next7DaysEnd = today.plusDays(7).atTime(23, 59, 59, 999_999_999),
+            next30DaysEnd = today.plusDays(30).atTime(23, 59, 59, 999_999_999),
         ).map { list -> list.map { it.toDomain() } }
     }
 
@@ -66,6 +66,14 @@ class TareaRepositoryImpl @Inject constructor(
 
     override suspend fun deleteById(id: Long) {
         tareaDao.deleteById(id)
+    }
+
+    override suspend fun getByCategoryId(categoryId: Long): List<Tarea> {
+        return tareaDao.getByCategoryId(categoryId).map { it.toDomain() }
+    }
+
+    override suspend fun countByCategoryId(categoryId: Long): Int {
+        return tareaDao.countByCategoryId(categoryId)
     }
 
     override suspend fun existsByNombre(nombre: String, excludeId: Long?): Boolean {

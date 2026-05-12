@@ -68,6 +68,12 @@ class TodayWidgetProvider : AppWidgetProvider() {
             refreshAll(context)
             return
         }
+        if (intent.action == TodayWidgetIntentFactory.ACTION_POSTPONE && taskId > 0L) {
+            context.startActivity(
+                TodayWidgetIntentFactory.createOpenPostponeDialogIntent(context, taskId),
+            )
+            return
+        }
         if (intent.action == TodayWidgetIntentFactory.ACTION_OPEN_TODAY) {
             context.startActivity(
                 Intent(context, com.dngarcia.tareasdiarias.MainActivity::class.java).apply {
@@ -91,7 +97,6 @@ class TodayWidgetProvider : AppWidgetProvider() {
                 when (intent.action) {
                     TodayWidgetIntentFactory.ACTION_COMPLETE -> entryPoint.completeTaskUseCase()(taskId)
                     TodayWidgetIntentFactory.ACTION_UNDO -> entryPoint.undoTaskCompletionUseCase()(taskId)
-                    TodayWidgetIntentFactory.ACTION_POSTPONE -> entryPoint.postponeTaskUseCase()(taskId)
                 }
             } finally {
                 refreshAll(context)

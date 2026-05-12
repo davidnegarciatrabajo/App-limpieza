@@ -13,6 +13,7 @@ import com.dngarcia.tareasdiarias.presentation.categorias.EditarCategoriaRoute
 import com.dngarcia.tareasdiarias.presentation.editar_tarea.EditarTareaRoute
 import com.dngarcia.tareasdiarias.presentation.home.HomeRoute
 import com.dngarcia.tareasdiarias.presentation.nueva_tarea.NuevaTareaRoute
+import com.dngarcia.tareasdiarias.presentation.postpone_task.PostponeTaskRoute
 import com.dngarcia.tareasdiarias.presentation.tareas.TareasRoute
 import com.dngarcia.tareasdiarias.presentation.today.TodayRoute
 
@@ -24,6 +25,8 @@ object AppRoute {
     const val EDIT_TASK = "edit_task"
     const val TASK_ID_ARG = "taskId"
     const val EDIT_TASK_ROUTE = "$EDIT_TASK/{$TASK_ID_ARG}"
+    const val POSTPONE_TASK = "postpone_task"
+    const val POSTPONE_TASK_ROUTE = "$POSTPONE_TASK/{$TASK_ID_ARG}"
 
     const val CATEGORIES = "categories"
     const val EDIT_CATEGORY = "edit_category"
@@ -31,6 +34,7 @@ object AppRoute {
     const val EDIT_CATEGORY_ROUTE = "$EDIT_CATEGORY/{$CATEGORY_ID_ARG}"
 
     fun editTaskRoute(taskId: Long): String = "$EDIT_TASK/$taskId"
+    fun postponeTaskRoute(taskId: Long): String = "$POSTPONE_TASK/$taskId"
 
     fun editCategoryRoute(categoryId: Long): String = "$EDIT_CATEGORY/$categoryId"
 }
@@ -117,6 +121,9 @@ fun AppNavigation(
                 onAddTask = {
                     navController.navigate(AppRoute.NEW_TASK)
                 },
+                onEditTask = { taskId ->
+                    navController.navigate(AppRoute.editTaskRoute(taskId))
+                },
             )
         }
         composable(route = AppRoute.NEW_TASK) {
@@ -126,6 +133,19 @@ fun AppNavigation(
                     navController.navigate(AppRoute.CATEGORIES)
                 },
                 onTaskCreated = { navController.popBackStack() },
+            )
+        }
+        composable(
+            route = AppRoute.POSTPONE_TASK_ROUTE,
+            arguments = listOf(
+                navArgument(AppRoute.TASK_ID_ARG) {
+                    type = NavType.LongType
+                },
+            ),
+        ) {
+            PostponeTaskRoute(
+                onBack = { navController.popBackStack() },
+                onTaskPostponed = { navController.popBackStack() },
             )
         }
         composable(

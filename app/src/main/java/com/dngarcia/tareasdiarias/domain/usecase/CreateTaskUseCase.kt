@@ -38,6 +38,7 @@ class CreateTaskUseCase @Inject constructor(
             diasPeriodicidad = params.diasPeriodicidad,
             fechaInicio = params.fechaInicio,
             fechaProximaEjecucion = nextExecutionAt,
+            fechaVisibleDesde = TaskTimelinePolicy.defaultVisibleFrom(nextExecutionAt),
             horaRecordatorio = params.horaRecordatorio,
             now = now,
         )
@@ -54,7 +55,9 @@ class CreateTaskUseCase @Inject constructor(
                 fechaCreacion = now,
                 fechaUltimaModificacion = now,
                 fechaProximaEjecucion = nextExecutionAt,
+                fechaVisibleDesde = TaskTimelinePolicy.defaultVisibleFrom(nextExecutionAt),
                 horaRecordatorio = params.horaRecordatorio,
+                ultimaVezQueHiceLaTarea = null,
                 cantidadPostergaciones = 0,
                 estadoAlerta = EstadoAlerta.NORMAL,
                 mensajeAlerta = null,
@@ -67,7 +70,7 @@ class CreateTaskUseCase @Inject constructor(
                     taskId = taskId,
                     taskTitle = params.nombre.trim(),
                     reminderAt = reminderAt,
-                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(params.periodicidad),
+                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(params.horaRecordatorio),
                 ),
             )
         }

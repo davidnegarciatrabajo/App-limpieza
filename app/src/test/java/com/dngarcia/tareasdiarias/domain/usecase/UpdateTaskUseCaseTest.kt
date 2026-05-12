@@ -11,6 +11,7 @@ import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
 import com.dngarcia.tareasdiarias.domain.repository.TaskReminderScheduler
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
@@ -47,7 +48,7 @@ class UpdateTaskUseCaseTest {
         assertEquals("Nuevo subtitulo", fakeRepository.lastUpdatedTask?.subtitulo)
         assertEquals(LocalDate.of(2026, 5, 1), fakeRepository.lastUpdatedTask?.fechaInicio)
         assertNotNull(fakeScheduler.lastScheduledReminder)
-        assertEquals(false, fakeScheduler.lastScheduledReminder?.requiresExactScheduling)
+        assertEquals(true, fakeScheduler.lastScheduledReminder?.requiresExactScheduling)
     }
 
     private class FakeTareaRepository : TareaRepository {
@@ -76,7 +77,9 @@ class UpdateTaskUseCaseTest {
                 fechaCreacion = LocalDateTime.now(),
                 fechaUltimaModificacion = LocalDateTime.now(),
                 fechaProximaEjecucion = LocalDateTime.now().plusDays(1),
+                fechaVisibleDesde = LocalDate.now().plusDays(1),
                 horaRecordatorio = null,
+                ultimaVezQueHiceLaTarea = LocalDateTime.now().minusDays(1),
                 cantidadPostergaciones = 0,
                 estadoAlerta = EstadoAlerta.NORMAL,
                 mensajeAlerta = null,
@@ -87,6 +90,8 @@ class UpdateTaskUseCaseTest {
             lastUpdatedTask = tarea
         }
         override suspend fun deleteById(id: Long) = Unit
+        override suspend fun getByCategoryId(categoryId: Long): List<Tarea> = emptyList()
+        override suspend fun countByCategoryId(categoryId: Long): Int = 0
         override suspend fun existsByNombre(nombre: String, excludeId: Long?): Boolean = false
     }
 

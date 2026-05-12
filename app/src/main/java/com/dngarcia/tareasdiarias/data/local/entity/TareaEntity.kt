@@ -18,7 +18,7 @@ import java.time.LocalTime
             entity = CategoriaEntity::class,
             parentColumns = ["id"],
             childColumns = ["categoria_id"],
-            onDelete = ForeignKey.RESTRICT,
+            onDelete = ForeignKey.CASCADE,
             onUpdate = ForeignKey.CASCADE,
         ),
     ],
@@ -26,6 +26,7 @@ import java.time.LocalTime
         Index(value = ["nombre"], unique = true),
         Index(value = ["categoria_id"]),
         Index(value = ["fecha_proxima_ejecucion"]),
+        Index(value = ["fecha_visible_desde"]),
         Index(value = ["fecha_ultima_modificacion"]),
         Index(value = ["tipo_periodicidad"]),
     ],
@@ -53,8 +54,12 @@ data class TareaEntity(
     val fechaUltimaModificacion: LocalDateTime = fechaCreacion,
     @ColumnInfo(name = "fecha_proxima_ejecucion")
     val fechaProximaEjecucion: LocalDateTime?,
+    @ColumnInfo(name = "fecha_visible_desde")
+    val fechaVisibleDesde: LocalDate?,
     @ColumnInfo(name = "hora_recordatorio")
     val horaRecordatorio: LocalTime?,
+    @ColumnInfo(name = "ultima_vez_que_hice_la_tarea")
+    val ultimaVezQueHiceLaTarea: LocalDateTime?,
     @ColumnInfo(name = "cantidad_postergaciones")
     val cantidadPostergaciones: Int = 0,
     @ColumnInfo(name = "estado_alerta")

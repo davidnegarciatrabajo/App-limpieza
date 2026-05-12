@@ -1,7 +1,7 @@
 package com.dngarcia.tareasdiarias.presentation.today
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +31,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,11 +49,14 @@ import com.dngarcia.tareasdiarias.R
 import com.dngarcia.tareasdiarias.presentation.common.MainBottomBar
 import com.dngarcia.tareasdiarias.presentation.common.MainBottomDestination
 import com.dngarcia.tareasdiarias.presentation.common.StatusText
+import com.dngarcia.tareasdiarias.presentation.common.TaskPostponeDialog
+import com.dngarcia.tareasdiarias.presentation.common.formatDueDateLabel
+import com.dngarcia.tareasdiarias.presentation.common.formatLastCompletionLabel
 import com.dngarcia.tareasdiarias.presentation.common.toUiColor
+import com.dngarcia.tareasdiarias.domain.usecase.TaskTimelinePolicy
 import com.dngarcia.tareasdiarias.ui.theme.StatusOk
 import com.dngarcia.tareasdiarias.ui.theme.StatusOverdue
-import com.dngarcia.tareasdiarias.ui.theme.StatusUpcoming
-import java.time.format.DateTimeFormatter
+import java.time.LocalDate
 
 @Composable
 fun TodayRoute(
@@ -57,6 +64,7 @@ fun TodayRoute(
     onOpenTasks: () -> Unit,
     onOpenMenu: () -> Unit,
     onAddTask: () -> Unit,
+    onEditTask: (Long) -> Unit,
     viewModel: TodayViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
 ) {
@@ -67,6 +75,10 @@ fun TodayRoute(
         onOpenTasks = onOpenTasks,
         onOpenMenu = onOpenMenu,
         onAddTask = onAddTask,
+        onEditTask = onEditTask,
+        onCompleteTask = viewModel::completeTask,
+        onUndoTask = viewModel::undoTask,
+        onPostponeTask = viewModel::postponeTask,
         onDismissUserError = viewModel::dismissUserError,
         onRetryLoadTasks = viewModel::retryLoadTasks,
         modifier = modifier,
@@ -80,12 +92,17 @@ fun TodayScreen(
     onOpenTasks: () -> Unit,
     onOpenMenu: () -> Unit,
     onAddTask: () -> Unit,
+    onEditTask: (Long) -> Unit,
+    onCompleteTask: (Long) -> Unit,
+    onUndoTask: (Long) -> Unit,
+    onPostponeTask: (Long, LocalDate) -> Unit,
     onDismissUserError: () -> Unit,
     onRetryLoadTasks: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    var postponeTask by remember { mutableStateOf<TodayTaskUiModel?>(null) }
 
     LaunchedEffect(uiState.userError) {
         val err = uiState.userError ?: return@LaunchedEffect
@@ -155,22 +172,45 @@ fun TodayScreen(
                         items = uiState.tasks,
                         key = { it.item.task.id },
                     ) { task ->
-                        TodayTaskItem(task = task)
+                        TodayTaskItem(
+                            task = task,
+                            onToggleTaskCompletion = {
+                                if (task.completedToday) {
+                                    onUndoTask(task.item.task.id)
+                                } else {
+                                    onCompleteTask(task.item.task.id)
+                                }
+                            },
+                            onEditTask = { onEditTask(task.item.task.id) },
+                            onPostponeTask = { postponeTask = task },
+                        )
                     }
                 }
             }
         }
+    }
+
+    postponeTask?.let { task ->
+        TaskPostponeDialog(
+            taskName = task.item.task.nombre,
+            onDismiss = { postponeTask = null },
+            onPostpone = { selectedDate ->
+                onPostponeTask(task.item.task.id, selectedDate)
+                postponeTask = null
+            },
+        )
     }
 }
 
 @Composable
 private fun TodayTaskItem(
     task: TodayTaskUiModel,
+    onToggleTaskCompletion: () -> Unit,
+    onEditTask: () -> Unit,
+    onPostponeTask: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
     val taskItem = task.item
-    val isDone = taskItem.status == com.dngarcia.tareasdiarias.domain.model.TaskStatus.OK
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -182,7 +222,10 @@ private fun TodayTaskItem(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        CustomTaskCheckbox(checked = isDone)
+        CustomTaskCheckbox(
+            checked = task.completedToday,
+            onClick = onToggleTaskCompletion,
+        )
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -200,24 +243,42 @@ private fun TodayTaskItem(
                 Text(
                     text = taskItem.task.nombre,
                     style = MaterialTheme.typography.titleMedium,
-                    textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isDone) 0.6f else 1f),
+                    textDecoration = if (task.completedToday) TextDecoration.LineThrough else TextDecoration.None,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             if (taskItem.task.subtitulo.isNotBlank()) {
                 Text(
                     text = taskItem.task.subtitulo,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (isDone) 0.7f else 1f),
-                    textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textDecoration = if (task.completedToday) TextDecoration.LineThrough else TextDecoration.None,
                 )
             }
-            if (taskItem.task.notas.isNotBlank()) {
+            Text(
+                text = formatLastCompletionLabel(taskItem.task.ultimaVezQueHiceLaTarea),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = formatDueDateLabel(TaskTimelinePolicy.expectedCycleDate(taskItem.task)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = stringResource(
+                    id = R.string.tasks_postponements_count,
+                    taskItem.task.cantidadPostergaciones,
+                ),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (taskItem.task.notas.isNotBlank() && !task.completedToday) {
                 Text(
                     text = taskItem.task.notas,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (isDone) 0.7f else 1f),
-                    textDecoration = if (isDone) TextDecoration.LineThrough else TextDecoration.None,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textDecoration = TextDecoration.None,
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -233,22 +294,16 @@ private fun TodayTaskItem(
                     border = MaterialTheme.colorScheme.outlineVariant,
                 )
                 StatusChip(
-                    text = StatusText(taskItem.status, taskItem.daysDelta, taskItem.hoursUntilDue),
+                    text = StatusText(taskItem.status, taskItem.daysDelta),
                     background = taskItem.status.chipBackground(),
                     content = taskItem.status.toUiColor(),
                 )
             }
-            Text(
-                text = stringResource(
-                    id = R.string.task_last_modified,
-                    taskItem.lastModifiedAt.format(dateFormatter),
-                ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                TextButton(onClick = {}) { Text(text = stringResource(id = R.string.today_action_edit)) }
-                TextButton(onClick = {}) { Text(text = stringResource(id = R.string.today_action_postpone)) }
+            if (!task.completedToday) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextButton(onClick = onEditTask) { Text(text = stringResource(id = R.string.today_action_edit)) }
+                    TextButton(onClick = onPostponeTask) { Text(text = stringResource(id = R.string.today_action_postpone)) }
+                }
             }
         }
     }
@@ -294,10 +349,14 @@ private fun periodicityLabel(periodicidad: com.dngarcia.tareasdiarias.domain.mod
 }
 
 @Composable
-private fun CustomTaskCheckbox(checked: Boolean) {
+private fun CustomTaskCheckbox(
+    checked: Boolean,
+    onClick: () -> Unit,
+) {
     Box(
         modifier = Modifier
             .size(38.dp)
+            .clickable(onClick = onClick)
             .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(2.dp))
             .background(if (checked) MaterialTheme.colorScheme.primary else Color.Transparent),
         contentAlignment = Alignment.Center,
@@ -335,6 +394,6 @@ private fun StatusChip(
 
 private fun com.dngarcia.tareasdiarias.domain.model.TaskStatus.chipBackground(): Color = when (this) {
     com.dngarcia.tareasdiarias.domain.model.TaskStatus.VENCIDA -> StatusOverdue.copy(alpha = 0.12f)
-    com.dngarcia.tareasdiarias.domain.model.TaskStatus.PROXIMA -> StatusUpcoming.copy(alpha = 0.18f)
     com.dngarcia.tareasdiarias.domain.model.TaskStatus.OK -> StatusOk.copy(alpha = 0.18f)
 }
+

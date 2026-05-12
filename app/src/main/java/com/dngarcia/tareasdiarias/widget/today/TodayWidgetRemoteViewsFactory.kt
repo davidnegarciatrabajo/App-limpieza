@@ -16,14 +16,12 @@ import com.dngarcia.tareasdiarias.domain.model.TaskStatus
 import com.dngarcia.tareasdiarias.domain.usecase.TodayWidgetTask
 import dagger.hilt.android.EntryPointAccessors
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.runBlocking
 
 class TodayWidgetRemoteViewsFactory(
     private val context: Context,
     private val sizeMode: TodayWidgetSizeMode,
 ) : RemoteViewsService.RemoteViewsFactory {
-    private val dateFormatter = DateTimeFormatter.ofPattern("dd/MM HH:mm")
     private var items: List<TodayWidgetTask> = emptyList()
 
     override fun onCreate() = Unit
@@ -78,24 +76,13 @@ class TodayWidgetRemoteViewsFactory(
                 if (item.task.subtitulo.isNotBlank() || item.task.notas.isNotBlank()) View.VISIBLE else View.GONE,
             )
             setTextViewText(R.id.widget_row_meta, formatMeta(item))
-            setTextViewText(
-                R.id.widget_row_last_modified,
-                context.getString(
-                    R.string.widget_today_last_modified,
-                    item.lastModifiedAt.format(dateFormatter),
-                ),
-            )
-            setViewVisibility(
-                R.id.widget_row_last_modified,
-                if (sizeMode == TodayWidgetSizeMode.EXPANDED) View.VISIBLE else View.GONE,
-            )
+            setViewVisibility(R.id.widget_row_last_modified, View.GONE)
             setImageViewResource(
                 R.id.widget_row_status_dot,
                 when {
                     item.completedToday -> R.drawable.widget_status_ok
                     item.status == TaskStatus.VENCIDA -> R.drawable.widget_status_overdue
-                    item.status == TaskStatus.PROXIMA -> R.drawable.widget_status_upcoming
-                    else -> R.drawable.widget_status_ok
+                    else -> R.drawable.widget_status_upcoming
                 },
             )
             setImageViewResource(
@@ -139,7 +126,6 @@ class TodayWidgetRemoteViewsFactory(
                 R.id.widget_row_postpone,
                 if (item.completedToday) View.GONE else View.VISIBLE,
             )
-            setOnClickFillInIntent(R.id.widget_row_root, editIntent)
             setOnClickFillInIntent(R.id.widget_row_check_container, actionIntent)
             setOnClickFillInIntent(R.id.widget_row_check, actionIntent)
             setOnClickFillInIntent(R.id.widget_row_edit, editIntent)
@@ -177,14 +163,14 @@ class TodayWidgetRemoteViewsFactory(
             context.getString(R.string.widget_today_done_today)
         } else {
             when (item.status) {
-                TaskStatus.VENCIDA -> context.getString(
-                    R.string.widget_today_status_overdue_days,
-                    item.daysDelta ?: 0L,
-                )
-                TaskStatus.PROXIMA -> context.getString(
-                    R.string.widget_today_status_due_hours,
-                    item.hoursUntilDue ?: 0L,
-                )
+                TaskStatus.VENCIDA -> if ((item.daysDelta ?: 0L) == 0L) {
+                    context.getString(R.string.widget_today_status_due_today)
+                } else {
+                    context.getString(
+                        R.string.widget_today_status_overdue_days,
+                        item.daysDelta ?: 0L,
+                    )
+                }
                 TaskStatus.OK -> context.getString(R.string.widget_today_status_ok)
             }
         }

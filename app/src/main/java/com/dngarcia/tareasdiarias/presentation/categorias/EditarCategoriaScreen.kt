@@ -44,8 +44,13 @@ fun EditarCategoriaRoute(
         onBack = onBack,
         onNombreChange = viewModel::onNombreChange,
         onGuardar = viewModel::onGuardarClick,
+        onDeleteCategoryClick = viewModel::onDeleteCategoryClick,
+        onDismissDeleteDialogs = viewModel::onDismissDeleteDialogs,
+        onConfirmDeleteStepOne = viewModel::onConfirmDeleteStepOne,
+        onConfirmDeleteCategory = viewModel::onConfirmDeleteCategory,
         onDismissLoadError = viewModel::dismissLoadError,
         onDismissSaveError = viewModel::dismissSaveError,
+        onDismissDeleteError = viewModel::dismissDeleteError,
         onRetryLoadCategoria = viewModel::retryLoadCategoria,
         onRetrySave = viewModel::retrySave,
     )
@@ -58,8 +63,13 @@ fun EditarCategoriaScreen(
     onBack: () -> Unit,
     onNombreChange: (String) -> Unit,
     onGuardar: () -> Unit,
+    onDeleteCategoryClick: () -> Unit,
+    onDismissDeleteDialogs: () -> Unit,
+    onConfirmDeleteStepOne: () -> Unit,
+    onConfirmDeleteCategory: () -> Unit,
     onDismissLoadError: () -> Unit,
     onDismissSaveError: () -> Unit,
+    onDismissDeleteError: () -> Unit,
     onRetryLoadCategoria: () -> Unit,
     onRetrySave: () -> Unit,
     modifier: Modifier = Modifier,
@@ -95,6 +105,50 @@ fun EditarCategoriaScreen(
             SnackbarResult.ActionPerformed -> onRetrySave()
             SnackbarResult.Dismissed -> onDismissSaveError()
         }
+    }
+
+    LaunchedEffect(uiState.deleteError) {
+        val err = uiState.deleteError ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(
+            message = context.getString(err.messageResId, *err.formatArgs),
+        )
+        onDismissDeleteError()
+    }
+
+    if (uiState.showDeleteConfirmDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = onDismissDeleteDialogs,
+            title = { Text(stringResource(id = R.string.category_delete_confirm_title)) },
+            text = { Text(stringResource(id = R.string.category_delete_confirm_message, uiState.taskCount)) },
+            confirmButton = {
+                TextButton(onClick = onConfirmDeleteStepOne) {
+                    Text(stringResource(id = R.string.task_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissDeleteDialogs) {
+                    Text(stringResource(id = R.string.task_cancel))
+                }
+            },
+        )
+    }
+
+    if (uiState.showDeleteFinalConfirmDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = onDismissDeleteDialogs,
+            title = { Text(stringResource(id = R.string.category_delete_final_confirm_title)) },
+            text = { Text(stringResource(id = R.string.category_delete_final_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = onConfirmDeleteCategory) {
+                    Text(stringResource(id = R.string.category_delete_confirm_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissDeleteDialogs) {
+                    Text(stringResource(id = R.string.task_cancel))
+                }
+            },
+        )
     }
 
     Scaffold(
@@ -154,12 +208,24 @@ fun EditarCategoriaScreen(
                         },
                         singleLine = true,
                     )
+                    Text(
+                        text = stringResource(id = R.string.category_task_count, uiState.taskCount),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                     Button(
                         onClick = onGuardar,
                         enabled = !uiState.isSaving && uiState.nombreError == null,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(stringResource(id = R.string.categories_save))
+                    }
+                    TextButton(
+                        onClick = onDeleteCategoryClick,
+                        enabled = !uiState.isSaving,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(id = R.string.category_delete_action))
                     }
                     TextButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
                         Text(stringResource(id = R.string.task_cancel))

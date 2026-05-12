@@ -48,6 +48,8 @@ class ValidateUniqueTaskNameUseCaseTest {
         override suspend fun create(tarea: Tarea): Long = 0L
         override suspend fun update(tarea: Tarea) = Unit
         override suspend fun deleteById(id: Long) = Unit
+        override suspend fun getByCategoryId(categoryId: Long): List<Tarea> = emptyList()
+        override suspend fun countByCategoryId(categoryId: Long): Int = 0
         override suspend fun existsByNombre(nombre: String, excludeId: Long?): Boolean = existsResult
     }
 }

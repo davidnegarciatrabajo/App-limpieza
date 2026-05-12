@@ -1,11 +1,9 @@
 package com.dngarcia.tareasdiarias.domain.usecase
 
-import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.repository.EjecucionRepository
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
 import javax.inject.Inject
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 class UndoTaskCompletionUseCase @Inject constructor(
@@ -28,16 +26,16 @@ class UndoTaskCompletionUseCase @Inject constructor(
         ) ?: return
 
         ejecucionRepository.deleteById(execution.id)
-
-        val restoredDueDate = restoreDueDate(
-            periodicidad = task.tipoPeriodicidad,
-            diasPeriodicidad = task.diasPeriodicidad,
-            currentDueDate = task.fechaProximaEjecucion?.toLocalDate(),
-            fallbackDate = execution.fechaEjecucion.toLocalDate(),
-        )
+        val latestRealCompletion = ejecucionRepository.getLatestCompletedByTaskId(taskId)?.fechaEjecucion
+        val restoredDueDate = execution.fechaCicloResuelto
+            ?: TaskTimelinePolicy.expectedCycleDate(task)
+            ?: referenceTime.toLocalDate()
         val updatedTask = task.copy(
             fechaUltimaModificacion = referenceTime,
-            fechaProximaEjecucion = restoredDueDate?.atStartOfDay(),
+            fechaProximaEjecucion = restoredDueDate.atStartOfDay(),
+            fechaVisibleDesde = restoredDueDate,
+            ultimaVezQueHiceLaTarea = latestRealCompletion,
+            cantidadPostergaciones = execution.cantidadPostergacionesPrevias,
         )
         tareaRepository.update(updatedTask)
 
@@ -46,6 +44,7 @@ class UndoTaskCompletionUseCase @Inject constructor(
             diasPeriodicidad = updatedTask.diasPeriodicidad,
             fechaInicio = updatedTask.fechaInicio,
             fechaProximaEjecucion = updatedTask.fechaProximaEjecucion,
+            fechaVisibleDesde = updatedTask.fechaVisibleDesde,
             horaRecordatorio = updatedTask.horaRecordatorio,
             now = referenceTime,
         )
@@ -57,27 +56,9 @@ class UndoTaskCompletionUseCase @Inject constructor(
                     taskId = taskId,
                     taskTitle = updatedTask.nombre,
                     reminderAt = reminderAt,
-                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(updatedTask.tipoPeriodicidad),
+                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(updatedTask.horaRecordatorio),
                 ),
             )
-        }
-    }
-
-    private fun restoreDueDate(
-        periodicidad: Periodicidad,
-        diasPeriodicidad: Int?,
-        currentDueDate: LocalDate?,
-        fallbackDate: LocalDate,
-    ): LocalDate? {
-        return when {
-            currentDueDate == null -> fallbackDate
-            periodicidad == Periodicidad.UNICA -> fallbackDate
-            periodicidad == Periodicidad.DIARIA -> currentDueDate.minusDays(1)
-            periodicidad == Periodicidad.SEMANAL -> currentDueDate.minusDays(7)
-            periodicidad == Periodicidad.MENSUAL -> currentDueDate.minusMonths(1)
-            periodicidad == Periodicidad.SEMESTRAL -> currentDueDate.minusMonths(6)
-            periodicidad == Periodicidad.PERSONALIZADA -> currentDueDate.minusDays((diasPeriodicidad ?: 1).toLong())
-            else -> fallbackDate
         }
     }
 }

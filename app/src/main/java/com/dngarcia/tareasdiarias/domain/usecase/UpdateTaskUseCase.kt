@@ -28,24 +28,28 @@ class UpdateTaskUseCase @Inject constructor(
     suspend operator fun invoke(params: UpdateTaskParams) {
         val currentTask = tareaRepository.getById(params.taskId) ?: return
         val now = LocalDateTime.now()
-        val nextExecutionAt = TaskReminderPolicy.calculateNextExecutionAt(
-            periodicidad = params.periodicidad,
-            diasPeriodicidad = params.diasPeriodicidad,
-            fechaInicio = params.fechaInicio,
-            referenceDate = now.toLocalDate(),
-        )
-        val reminderAt = TaskReminderPolicy.calculateReminderAt(
-            periodicidad = params.periodicidad,
-            diasPeriodicidad = params.diasPeriodicidad,
-            fechaInicio = params.fechaInicio,
-            fechaProximaEjecucion = nextExecutionAt,
-            horaRecordatorio = params.horaRecordatorio,
-            now = now,
-        )
-        val shouldIncrementPostponements = PostponementPolicy.shouldIncrement(
-            currentDueDate = currentTask.fechaProximaEjecucion,
-            updatedDueDate = nextExecutionAt,
-        )
+        val scheduleDefinitionChanged = currentTask.tipoPeriodicidad != params.periodicidad ||
+            currentTask.diasPeriodicidad != params.diasPeriodicidad ||
+            currentTask.fechaInicio != params.fechaInicio
+        val nextExecutionAt = if (scheduleDefinitionChanged) {
+            TaskReminderPolicy.calculateNextExecutionAt(
+                periodicidad = params.periodicidad,
+                diasPeriodicidad = params.diasPeriodicidad,
+                fechaInicio = params.fechaInicio,
+                referenceDate = now.toLocalDate(),
+            )
+        } else {
+            currentTask.fechaProximaEjecucion
+        }
+        val visibleFrom = if (scheduleDefinitionChanged) {
+            TaskTimelinePolicy.preserveVisibleFromOnUpdate(
+                currentVisibleFrom = currentTask.fechaVisibleDesde,
+                recalculatedExpectedCycleAt = nextExecutionAt,
+                today = now.toLocalDate(),
+            )
+        } else {
+            currentTask.fechaVisibleDesde
+        }
 
         val updatedTask = currentTask.copy(
             nombre = params.nombre.trim(),
@@ -57,14 +61,20 @@ class UpdateTaskUseCase @Inject constructor(
             fechaInicio = params.fechaInicio,
             fechaUltimaModificacion = now,
             fechaProximaEjecucion = nextExecutionAt,
+            fechaVisibleDesde = visibleFrom,
             horaRecordatorio = params.horaRecordatorio,
-            cantidadPostergaciones = if (shouldIncrementPostponements) {
-                currentTask.cantidadPostergaciones + 1
-            } else {
-                currentTask.cantidadPostergaciones
-            },
         )
         tareaRepository.update(updatedTask)
+
+        val reminderAt = TaskReminderPolicy.calculateReminderAt(
+            periodicidad = updatedTask.tipoPeriodicidad,
+            diasPeriodicidad = updatedTask.diasPeriodicidad,
+            fechaInicio = updatedTask.fechaInicio,
+            fechaProximaEjecucion = updatedTask.fechaProximaEjecucion,
+            fechaVisibleDesde = updatedTask.fechaVisibleDesde,
+            horaRecordatorio = updatedTask.horaRecordatorio,
+            now = now,
+        )
 
         if (reminderAt == null) {
             cancelTaskReminderUseCase(params.taskId)
@@ -74,7 +84,7 @@ class UpdateTaskUseCase @Inject constructor(
                     taskId = params.taskId,
                     taskTitle = updatedTask.nombre,
                     reminderAt = reminderAt,
-                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(params.periodicidad),
+                    requiresExactScheduling = TaskReminderPolicy.requiresExactAlarm(updatedTask.horaRecordatorio),
                 ),
             )
         }

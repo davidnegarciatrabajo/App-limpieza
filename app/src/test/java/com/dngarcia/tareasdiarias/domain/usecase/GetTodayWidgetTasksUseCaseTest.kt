@@ -52,7 +52,8 @@ class GetTodayWidgetTasksUseCaseTest {
                 baseTask(
                     id = 2L,
                     nombre = "Limpiar ventanas",
-                    dueAt = LocalDateTime.of(2026, 5, 13, 0, 0),
+                    dueAt = LocalDateTime.of(2026, 5, 11, 0, 0),
+                    visibleFrom = LocalDate.of(2026, 5, 13),
                 ),
                 baseTask(
                     id = 3L,
@@ -76,12 +77,15 @@ class GetTodayWidgetTasksUseCaseTest {
         override suspend fun create(tarea: Tarea): Long = 0L
         override suspend fun update(tarea: Tarea) = Unit
         override suspend fun deleteById(id: Long) = Unit
+        override suspend fun getByCategoryId(categoryId: Long): List<Tarea> = emptyList()
+        override suspend fun countByCategoryId(categoryId: Long): Int = 0
         override suspend fun existsByNombre(nombre: String, excludeId: Long?): Boolean = false
 
         private fun baseTask(
             id: Long,
             nombre: String,
             dueAt: LocalDateTime,
+            visibleFrom: LocalDate = dueAt.toLocalDate(),
             postponements: Int = 0,
         ) = Tarea(
             id = id,
@@ -95,7 +99,9 @@ class GetTodayWidgetTasksUseCaseTest {
             fechaCreacion = LocalDateTime.of(2026, 5, 1, 8, 0),
             fechaUltimaModificacion = LocalDateTime.of(2026, 5, 10, 9, 0),
             fechaProximaEjecucion = dueAt,
+            fechaVisibleDesde = visibleFrom,
             horaRecordatorio = null,
+            ultimaVezQueHiceLaTarea = null,
             cantidadPostergaciones = postponements,
             estadoAlerta = EstadoAlerta.NORMAL,
             mensajeAlerta = null,
@@ -120,11 +126,19 @@ class GetTodayWidgetTasksUseCaseTest {
                 id = 1L,
                 tareaId = 3L,
                 fechaEjecucion = LocalDateTime.of(2026, 5, 11, 9, 0),
+                fechaCicloResuelto = LocalDate.of(2026, 5, 11),
                 completadaPorUsuario = true,
             ),
         )
 
         override fun observeByTareaId(tareaId: Long): Flow<List<Ejecucion>> = flowOf(emptyList())
+
+        override fun observeCompletedBetween(
+            startInclusive: LocalDateTime,
+            endInclusive: LocalDateTime,
+        ): Flow<List<Ejecucion>> = flowOf(
+            executions.filter { it.fechaEjecucion in startInclusive..endInclusive },
+        )
 
         override suspend fun getCompletedBetween(
             startInclusive: LocalDateTime,
@@ -136,6 +150,16 @@ class GetTodayWidgetTasksUseCaseTest {
             startInclusive: LocalDateTime,
             endInclusive: LocalDateTime,
         ): Ejecucion? = executions.firstOrNull { it.tareaId == tareaId }
+
+        override suspend fun getLatestCompletedForCycle(
+            tareaId: Long,
+            cycleDate: LocalDate,
+        ): Ejecucion? = executions.firstOrNull {
+            it.tareaId == tareaId && it.fechaCicloResuelto == cycleDate
+        }
+
+        override suspend fun getLatestCompletedByTaskId(tareaId: Long): Ejecucion? =
+            executions.firstOrNull { it.tareaId == tareaId }
 
         override suspend fun create(ejecucion: Ejecucion): Long = 0L
         override suspend fun deleteById(id: Long) = Unit

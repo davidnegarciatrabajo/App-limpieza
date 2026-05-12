@@ -10,6 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * v3: índice `index_tarea_fecha_ultima_modificacion`.
  * v4: columna opcional `subtitulo` con default vacío.
  * v5: columna opcional `hora_recordatorio` para preservar la hora elegida por el usuario.
+ * v6: columna obligatoria `fecha_inicio` para anclar la periodicidad sin perder datos previos.
  */
 object TareasMigrations {
 
@@ -43,6 +44,27 @@ object TareasMigrations {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(
                 "ALTER TABLE tarea ADD COLUMN hora_recordatorio INTEGER",
+            )
+        }
+    }
+
+    val MIGRATION_5_6: Migration = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE tarea ADD COLUMN fecha_inicio INTEGER NOT NULL DEFAULT 0",
+            )
+            db.execSQL(
+                """
+                UPDATE tarea
+                SET fecha_inicio = CAST(
+                    julianday(
+                        COALESCE(
+                            date(fecha_proxima_ejecucion / 1000, 'unixepoch'),
+                            date(fecha_creacion / 1000, 'unixepoch')
+                        )
+                    ) - 2440587.5 AS INTEGER
+                )
+                """.trimIndent(),
             )
         }
     }

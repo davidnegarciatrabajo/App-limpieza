@@ -4,6 +4,7 @@ import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.model.Tarea
+import java.time.LocalDate
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -16,6 +17,7 @@ data class CreateTaskParams(
     val periodicidad: Periodicidad,
     val diasPeriodicidad: Int?,
     val notas: String,
+    val fechaInicio: LocalDate,
     val horaRecordatorio: LocalTime?,
 )
 
@@ -25,11 +27,19 @@ class CreateTaskUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(params: CreateTaskParams): Long {
         val now = LocalDateTime.now()
+        val nextExecutionAt = TaskReminderPolicy.calculateNextExecutionAt(
+            periodicidad = params.periodicidad,
+            diasPeriodicidad = params.diasPeriodicidad,
+            fechaInicio = params.fechaInicio,
+            referenceDate = now.toLocalDate(),
+        )
         val reminderAt = TaskReminderPolicy.calculateReminderAt(
             periodicidad = params.periodicidad,
             diasPeriodicidad = params.diasPeriodicidad,
-            baseDateTime = now,
+            fechaInicio = params.fechaInicio,
+            fechaProximaEjecucion = nextExecutionAt,
             horaRecordatorio = params.horaRecordatorio,
+            now = now,
         )
         val taskId = tareaRepository.create(
             tarea = Tarea(
@@ -40,9 +50,10 @@ class CreateTaskUseCase @Inject constructor(
                 tipoPeriodicidad = params.periodicidad,
                 diasPeriodicidad = params.diasPeriodicidad,
                 notas = params.notas.trim(),
+                fechaInicio = params.fechaInicio,
                 fechaCreacion = now,
                 fechaUltimaModificacion = now,
-                fechaProximaEjecucion = reminderAt,
+                fechaProximaEjecucion = nextExecutionAt,
                 horaRecordatorio = params.horaRecordatorio,
                 cantidadPostergaciones = 0,
                 estadoAlerta = EstadoAlerta.NORMAL,

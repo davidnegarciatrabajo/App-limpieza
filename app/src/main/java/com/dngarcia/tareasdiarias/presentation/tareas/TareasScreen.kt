@@ -761,6 +761,7 @@ private fun mockTask(id: Long): TaskStatusItemUiModel {
         tipoPeriodicidad = Periodicidad.DIARIA,
         diasPeriodicidad = 1,
         notas = "",
+        fechaInicio = LocalDateTime.now().toLocalDate(),
         fechaCreacion = LocalDateTime.now(),
         fechaUltimaModificacion = LocalDateTime.now(),
         fechaProximaEjecucion = LocalDateTime.now().plusHours(8),

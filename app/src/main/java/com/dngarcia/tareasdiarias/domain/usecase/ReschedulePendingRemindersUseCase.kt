@@ -10,9 +10,17 @@ class ReschedulePendingRemindersUseCase @Inject constructor(
     private val taskReminderScheduler: TaskReminderScheduler,
 ) {
     suspend operator fun invoke() {
+        val now = java.time.LocalDateTime.now()
         val pendingTasks = tareaRepository.getPendingReminderTasks()
         pendingTasks.forEach { task ->
-            val reminderAt = task.fechaProximaEjecucion ?: return@forEach
+            val reminderAt = TaskReminderPolicy.calculateReminderAt(
+                periodicidad = task.tipoPeriodicidad,
+                diasPeriodicidad = task.diasPeriodicidad,
+                fechaInicio = task.fechaInicio,
+                fechaProximaEjecucion = task.fechaProximaEjecucion,
+                horaRecordatorio = task.horaRecordatorio,
+                now = now,
+            ) ?: return@forEach
             taskReminderScheduler.schedule(
                 reminder = TaskReminder(
                     taskId = task.id,

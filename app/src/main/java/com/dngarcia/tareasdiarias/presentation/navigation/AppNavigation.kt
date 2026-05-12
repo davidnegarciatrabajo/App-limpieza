@@ -1,6 +1,7 @@
 package com.dngarcia.tareasdiarias.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,8 +37,18 @@ object AppRoute {
 
 @Composable
 fun AppNavigation(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    externalRoute: String? = null,
+    onExternalRouteConsumed: () -> Unit = {},
 ) {
+    LaunchedEffect(externalRoute) {
+        val route = externalRoute ?: return@LaunchedEffect
+        navController.navigate(route) {
+            launchSingleTop = true
+        }
+        onExternalRouteConsumed()
+    }
+
     NavHost(
         navController = navController,
         startDestination = AppRoute.TODAY

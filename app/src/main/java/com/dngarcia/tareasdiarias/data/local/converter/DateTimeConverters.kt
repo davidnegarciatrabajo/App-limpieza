@@ -4,6 +4,7 @@ import androidx.room.TypeConverter
 import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneOffset
@@ -20,6 +21,12 @@ class DateTimeConverters {
             LocalDateTime.ofInstant(Instant.ofEpochMilli(it), ZoneOffset.UTC)
         }
     }
+
+    @TypeConverter
+    fun localDateToEpochDay(value: LocalDate?): Long? = value?.toEpochDay()
+
+    @TypeConverter
+    fun epochDayToLocalDate(value: Long?): LocalDate? = value?.let(LocalDate::ofEpochDay)
 
     @TypeConverter
     fun localTimeToSecondsOfDay(value: LocalTime?): Int? {

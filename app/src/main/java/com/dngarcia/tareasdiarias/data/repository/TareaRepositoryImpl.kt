@@ -42,7 +42,6 @@ class TareaRepositoryImpl @Inject constructor(
             statusFilter = advancedFilters.status?.name,
             datePreset = advancedFilters.datePreset.name,
             categoryId = advancedFilters.categoryId,
-            now = now,
             upcomingThreshold = now.plusHours(24),
             todayStart = today.atStartOfDay(),
             todayEnd = today.plusDays(1).atStartOfDay().minusNanos(1),

@@ -6,6 +6,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.dngarcia.tareasdiarias.data.notification.ReminderNotificationManager
 import com.dngarcia.tareasdiarias.domain.usecase.SeedDebugSampleDataIfNeededUseCase
+import com.dngarcia.tareasdiarias.widget.today.TodayWidgetDatabaseObserver
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -24,6 +25,9 @@ class TareasDiariasApp : Application(), Configuration.Provider {
     @Inject
     lateinit var seedDebugSampleDataIfNeeded: SeedDebugSampleDataIfNeededUseCase
 
+    @Inject
+    lateinit var todayWidgetDatabaseObserver: TodayWidgetDatabaseObserver
+
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override val workManagerConfiguration: Configuration
@@ -34,6 +38,7 @@ class TareasDiariasApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         reminderNotificationManager.createChannel()
+        todayWidgetDatabaseObserver.start()
         applicationScope.launch {
             runCatching { seedDebugSampleDataIfNeeded() }
                 .onFailure { Log.e(TAG, "No se pudo ejecutar el seed de datos de debug.", it) }

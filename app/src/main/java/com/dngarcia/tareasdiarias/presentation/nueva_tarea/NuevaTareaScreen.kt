@@ -38,6 +38,8 @@ import com.dngarcia.tareasdiarias.R
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.presentation.common.AppTopBar
 import com.dngarcia.tareasdiarias.presentation.common.OptionalReminderTimeField
+import com.dngarcia.tareasdiarias.presentation.common.RequiredTaskDateField
+import java.time.LocalDate
 import java.time.LocalTime
 
 @Composable
@@ -60,6 +62,7 @@ fun NuevaTareaRoute(
         onPeriodicidadSelected = viewModel::onPeriodicidadSelected,
         onDiasPersonalizadosChange = viewModel::onDiasPersonalizadosChange,
         onNotasChange = viewModel::onNotasChange,
+        onFechaInicioChange = viewModel::onFechaInicioChange,
         onHoraRecordatorioChange = viewModel::onHoraRecordatorioChange,
         onClearHoraRecordatorio = viewModel::onClearHoraRecordatorio,
         onOpenCategories = onOpenCategories,
@@ -80,6 +83,7 @@ fun NuevaTareaScreen(
     onPeriodicidadSelected: (Periodicidad) -> Unit,
     onDiasPersonalizadosChange: (String) -> Unit,
     onNotasChange: (String) -> Unit,
+    onFechaInicioChange: (LocalDate) -> Unit,
     onHoraRecordatorioChange: (LocalTime) -> Unit,
     onClearHoraRecordatorio: () -> Unit,
     onOpenCategories: () -> Unit,
@@ -157,6 +161,12 @@ fun NuevaTareaScreen(
                 label = { Text(stringResource(id = R.string.task_field_notes)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
+            )
+
+            RequiredTaskDateField(
+                selectedDate = uiState.fechaInicio,
+                onDateSelected = onFechaInicioChange,
+                modifier = Modifier.fillMaxWidth(),
             )
 
             OptionalReminderTimeField(

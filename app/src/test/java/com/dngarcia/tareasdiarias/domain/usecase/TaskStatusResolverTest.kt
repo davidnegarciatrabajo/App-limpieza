@@ -12,7 +12,7 @@ class TaskStatusResolverTest {
     @Test
     fun resolve_whenDueDatePassed_returnsVencida() {
         val now = LocalDateTime.of(2026, 5, 6, 10, 0)
-        val task = buildTask(dueAt = now.minusHours(2))
+        val task = buildTask(dueAt = now.minusDays(1))
 
         val result = TaskStatusResolver.resolve(task = task, now = now)
 
@@ -43,10 +43,12 @@ class TaskStatusResolverTest {
         return Tarea(
             id = 1L,
             nombre = "Task",
+            subtitulo = "",
             categoriaId = 1L,
             tipoPeriodicidad = Periodicidad.DIARIA,
             diasPeriodicidad = null,
             notas = "",
+            fechaInicio = dueAt.toLocalDate(),
             fechaCreacion = LocalDateTime.of(2026, 5, 1, 10, 0),
             fechaUltimaModificacion = LocalDateTime.of(2026, 5, 5, 10, 0),
             fechaProximaEjecucion = dueAt,

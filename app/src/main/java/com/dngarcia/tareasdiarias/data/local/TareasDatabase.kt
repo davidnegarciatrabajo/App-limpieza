@@ -17,7 +17,7 @@ import com.dngarcia.tareasdiarias.data.local.entity.TareaEntity
         CategoriaEntity::class,
         EjecucionEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(DateTimeConverters::class)

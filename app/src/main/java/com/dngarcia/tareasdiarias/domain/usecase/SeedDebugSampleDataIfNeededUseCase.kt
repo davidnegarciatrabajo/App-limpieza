@@ -83,6 +83,7 @@ class SeedDebugSampleDataIfNeededUseCase @Inject constructor(
             tipoPeriodicidad = periodicidad,
             diasPeriodicidad = dias,
             notas = notas,
+            fechaInicio = (proxima ?: creado).toLocalDate(),
             fechaCreacion = creado,
             fechaUltimaModificacion = creado.plusDays(1),
             fechaProximaEjecucion = proxima,

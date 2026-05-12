@@ -1,6 +1,7 @@
 package com.dngarcia.tareasdiarias.domain.usecase
 
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import org.junit.Assert.assertEquals
@@ -9,87 +10,92 @@ import org.junit.Test
 
 class TaskReminderPolicyTest {
     @Test
-    fun calculateReminderAt_withoutExplicitTime_keepsLegacyBehavior() {
-        // Arrange
-        val baseDateTime = LocalDateTime.of(2026, 5, 8, 14, 30)
-
-        // Act
-        val result = TaskReminderPolicy.calculateReminderAt(
+    fun calculateNextExecutionAt_usesFechaInicioAsAnchorForRecurringTasks() {
+        val result = TaskReminderPolicy.calculateNextExecutionAt(
             periodicidad = Periodicidad.DIARIA,
             diasPeriodicidad = null,
-            baseDateTime = baseDateTime,
-            horaRecordatorio = null,
+            fechaInicio = LocalDate.of(2026, 5, 5),
+            referenceDate = LocalDate.of(2026, 5, 8),
         )
 
-        // Assert
-        assertEquals(LocalDateTime.of(2026, 5, 9, 14, 30), result)
+        assertEquals(LocalDateTime.of(2026, 5, 8, 0, 0), result)
     }
 
     @Test
-    fun calculateReminderAt_withExplicitTime_combinesNextCycleDateWithSelectedHour() {
-        // Arrange
-        val baseDateTime = LocalDateTime.of(2026, 5, 8, 14, 30)
+    fun calculateNextExecutionAt_forFutureStartKeepsFutureDate() {
+        val result = TaskReminderPolicy.calculateNextExecutionAt(
+            periodicidad = Periodicidad.SEMANAL,
+            diasPeriodicidad = null,
+            fechaInicio = LocalDate.of(2026, 5, 15),
+            referenceDate = LocalDate.of(2026, 5, 8),
+        )
 
-        // Act
+        assertEquals(LocalDateTime.of(2026, 5, 15, 0, 0), result)
+    }
+
+    @Test
+    fun calculateReminderAt_withFutureDueDateAndTime_usesSameDayAndHour() {
         val result = TaskReminderPolicy.calculateReminderAt(
             periodicidad = Periodicidad.SEMANAL,
             diasPeriodicidad = null,
-            baseDateTime = baseDateTime,
+            fechaInicio = LocalDate.of(2026, 5, 1),
+            fechaProximaEjecucion = LocalDateTime.of(2026, 5, 15, 0, 0),
             horaRecordatorio = LocalTime.of(9, 15),
+            now = LocalDateTime.of(2026, 5, 8, 14, 30),
         )
 
-        // Assert
         assertEquals(LocalDateTime.of(2026, 5, 15, 9, 15), result)
     }
 
     @Test
-    fun calculateReminderAt_whenUniqueTimeAlreadyPassed_movesReminderToNextDay() {
-        // Arrange
-        val baseDateTime = LocalDateTime.of(2026, 5, 8, 14, 30)
-
-        // Act
+    fun calculateReminderAt_whenCurrentCycleTimeAlreadyPassed_movesToNextValidCycle() {
         val result = TaskReminderPolicy.calculateReminderAt(
-            periodicidad = Periodicidad.UNICA,
+            periodicidad = Periodicidad.SEMANAL,
             diasPeriodicidad = null,
-            baseDateTime = baseDateTime,
+            fechaInicio = LocalDate.of(2026, 5, 1),
+            fechaProximaEjecucion = LocalDateTime.of(2026, 5, 8, 0, 0),
             horaRecordatorio = LocalTime.of(9, 0),
+            now = LocalDateTime.of(2026, 5, 8, 14, 30),
         )
 
-        // Assert
-        assertEquals(LocalDateTime.of(2026, 5, 9, 9, 0), result)
+        assertEquals(LocalDateTime.of(2026, 5, 15, 9, 0), result)
     }
 
     @Test
-    fun calculateReminderAt_forUniqueTask_withoutExplicitTime_addsOneMinute() {
-        // Arrange
-        val baseDateTime = LocalDateTime.of(2026, 5, 8, 14, 30)
-
-        // Act
+    fun calculateReminderAt_forPastUniqueTaskReturnsNull() {
         val result = TaskReminderPolicy.calculateReminderAt(
             periodicidad = Periodicidad.UNICA,
             diasPeriodicidad = null,
-            baseDateTime = baseDateTime,
-            horaRecordatorio = null,
+            fechaInicio = LocalDate.of(2026, 5, 8),
+            fechaProximaEjecucion = LocalDateTime.of(2026, 5, 8, 0, 0),
+            horaRecordatorio = LocalTime.of(8, 0),
+            now = LocalDateTime.of(2026, 5, 8, 14, 30),
         )
 
-        // Assert
-        assertEquals(LocalDateTime.of(2026, 5, 8, 14, 31), result)
+        assertNull(result)
     }
 
     @Test
-    fun calculateReminderAt_withInvalidCustomDays_returnsNull() {
-        // Arrange
-        val baseDateTime = LocalDateTime.of(2026, 5, 8, 14, 30)
+    fun calculateNextExecutionAfterResolution_forUniqueTask_returnsNull() {
+        val result = TaskReminderPolicy.calculateNextExecutionAfterResolution(
+            periodicidad = Periodicidad.UNICA,
+            diasPeriodicidad = null,
+            fechaInicio = LocalDate.of(2026, 5, 8),
+            resolvedAt = LocalDate.of(2026, 5, 8),
+        )
 
-        // Act
-        val result = TaskReminderPolicy.calculateReminderAt(
+        assertNull(result)
+    }
+
+    @Test
+    fun calculateNextExecutionAt_withInvalidCustomDays_returnsNull() {
+        val result = TaskReminderPolicy.calculateNextExecutionAt(
             periodicidad = Periodicidad.PERSONALIZADA,
             diasPeriodicidad = 0,
-            baseDateTime = baseDateTime,
-            horaRecordatorio = LocalTime.of(8, 0),
+            fechaInicio = LocalDate.of(2026, 5, 8),
+            referenceDate = LocalDate.of(2026, 5, 8),
         )
 
-        // Assert
         assertNull(result)
     }
 

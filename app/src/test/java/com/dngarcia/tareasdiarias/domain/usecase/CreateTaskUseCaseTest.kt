@@ -7,6 +7,7 @@ import com.dngarcia.tareasdiarias.domain.model.Tarea
 import com.dngarcia.tareasdiarias.domain.model.TaskPeriodicityFilter
 import com.dngarcia.tareasdiarias.domain.model.TaskSortOrder
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
+import java.time.LocalDate
 import com.dngarcia.tareasdiarias.domain.repository.TaskReminderScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -17,7 +18,7 @@ import org.junit.Test
 
 class CreateTaskUseCaseTest {
     @Test
-    fun invoke_createsTaskAndSchedulesReminder() = runBlocking {
+    fun invoke_createsTaskAndSchedulesReminderWhenTimeIsPresent() = runBlocking {
         val fakeRepository = FakeTareaRepository()
         val fakeScheduler = FakeTaskReminderScheduler()
         val useCase = CreateTaskUseCase(
@@ -33,13 +34,15 @@ class CreateTaskUseCaseTest {
                 periodicidad = Periodicidad.DIARIA,
                 diasPeriodicidad = null,
                 notas = "Con detergente",
-                horaRecordatorio = null,
+                fechaInicio = LocalDate.of(2026, 5, 8),
+                horaRecordatorio = java.time.LocalTime.of(9, 0),
             ),
         )
 
         assertEquals(99L, taskId)
         assertEquals("Limpiar cocina", fakeRepository.lastCreatedTask?.nombre)
         assertEquals("Encimera y hornallas", fakeRepository.lastCreatedTask?.subtitulo)
+        assertEquals(LocalDate.of(2026, 5, 8), fakeRepository.lastCreatedTask?.fechaInicio)
         assertNotNull(fakeScheduler.lastScheduledReminder)
         assertEquals(false, fakeScheduler.lastScheduledReminder?.requiresExactScheduling)
     }

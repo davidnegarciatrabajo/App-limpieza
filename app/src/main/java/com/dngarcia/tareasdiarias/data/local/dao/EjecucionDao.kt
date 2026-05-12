@@ -13,6 +13,37 @@ interface EjecucionDao {
     @Query("SELECT * FROM ejecucion WHERE tarea_id = :tareaId ORDER BY fecha_ejecucion DESC")
     fun observeByTareaId(tareaId: Long): Flow<List<EjecucionEntity>>
 
+    @Query(
+        """
+        SELECT * FROM ejecucion
+        WHERE completada_por_usuario = 1
+        AND fecha_ejecucion >= :startInclusive
+        AND fecha_ejecucion <= :endInclusive
+        ORDER BY fecha_ejecucion DESC
+        """
+    )
+    suspend fun getCompletedBetween(
+        startInclusive: java.time.LocalDateTime,
+        endInclusive: java.time.LocalDateTime,
+    ): List<EjecucionEntity>
+
+    @Query(
+        """
+        SELECT * FROM ejecucion
+        WHERE tarea_id = :tareaId
+        AND completada_por_usuario = 1
+        AND fecha_ejecucion >= :startInclusive
+        AND fecha_ejecucion <= :endInclusive
+        ORDER BY fecha_ejecucion DESC
+        LIMIT 1
+        """
+    )
+    suspend fun getLatestCompletedBetween(
+        tareaId: Long,
+        startInclusive: java.time.LocalDateTime,
+        endInclusive: java.time.LocalDateTime,
+    ): EjecucionEntity?
+
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(ejecucion: EjecucionEntity): Long
 

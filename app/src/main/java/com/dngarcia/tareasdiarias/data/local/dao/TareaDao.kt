@@ -59,10 +59,10 @@ interface TareaDao {
         )
         AND (
             :statusFilter IS NULL
-            OR (:statusFilter = 'VENCIDA' AND fecha_proxima_ejecucion < :now)
+            OR (:statusFilter = 'VENCIDA' AND fecha_proxima_ejecucion < :todayStart)
             OR (
                 :statusFilter = 'PROXIMA'
-                AND fecha_proxima_ejecucion >= :now
+                AND fecha_proxima_ejecucion >= :todayStart
                 AND fecha_proxima_ejecucion <= :upcomingThreshold
             )
             OR (:statusFilter = 'OK' AND fecha_proxima_ejecucion > :upcomingThreshold)
@@ -76,15 +76,15 @@ interface TareaDao {
             )
             OR (
                 :datePreset = 'NEXT_7_DAYS'
-                AND fecha_proxima_ejecucion >= :now
+                AND fecha_proxima_ejecucion >= :todayStart
                 AND fecha_proxima_ejecucion <= :next7DaysEnd
             )
             OR (
                 :datePreset = 'NEXT_30_DAYS'
-                AND fecha_proxima_ejecucion >= :now
+                AND fecha_proxima_ejecucion >= :todayStart
                 AND fecha_proxima_ejecucion <= :next30DaysEnd
             )
-            OR (:datePreset = 'OVERDUE' AND fecha_proxima_ejecucion < :now)
+            OR (:datePreset = 'OVERDUE' AND fecha_proxima_ejecucion < :todayStart)
         )
         AND (
             :categoryId IS NULL
@@ -105,7 +105,6 @@ interface TareaDao {
         statusFilter: String?,
         datePreset: String,
         categoryId: Long?,
-        now: LocalDateTime,
         upcomingThreshold: LocalDateTime,
         todayStart: LocalDateTime,
         todayEnd: LocalDateTime,

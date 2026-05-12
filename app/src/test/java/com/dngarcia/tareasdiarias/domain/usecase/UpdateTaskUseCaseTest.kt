@@ -9,6 +9,7 @@ import com.dngarcia.tareasdiarias.domain.model.TaskPeriodicityFilter
 import com.dngarcia.tareasdiarias.domain.model.TaskSortOrder
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
 import com.dngarcia.tareasdiarias.domain.repository.TaskReminderScheduler
+import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -37,12 +38,14 @@ class UpdateTaskUseCaseTest {
                 notas = "Notas editadas",
                 periodicidad = Periodicidad.SEMANAL,
                 diasPeriodicidad = null,
-                horaRecordatorio = null,
+                fechaInicio = LocalDate.of(2026, 5, 1),
+                horaRecordatorio = java.time.LocalTime.of(10, 30),
             ),
         )
 
         assertEquals("Tarea editada", fakeRepository.lastUpdatedTask?.nombre)
         assertEquals("Nuevo subtitulo", fakeRepository.lastUpdatedTask?.subtitulo)
+        assertEquals(LocalDate.of(2026, 5, 1), fakeRepository.lastUpdatedTask?.fechaInicio)
         assertNotNull(fakeScheduler.lastScheduledReminder)
         assertEquals(false, fakeScheduler.lastScheduledReminder?.requiresExactScheduling)
     }
@@ -69,6 +72,7 @@ class UpdateTaskUseCaseTest {
                 tipoPeriodicidad = Periodicidad.DIARIA,
                 diasPeriodicidad = null,
                 notas = "",
+                fechaInicio = LocalDate.of(2026, 4, 30),
                 fechaCreacion = LocalDateTime.now(),
                 fechaUltimaModificacion = LocalDateTime.now(),
                 fechaProximaEjecucion = LocalDateTime.now().plusDays(1),

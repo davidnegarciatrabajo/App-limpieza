@@ -14,6 +14,28 @@ class EjecucionRepositoryImpl @Inject constructor(
         return ejecucionDao.observeByTareaId(tareaId).map { list -> list.map { it.toDomain() } }
     }
 
+    override suspend fun getCompletedBetween(
+        startInclusive: java.time.LocalDateTime,
+        endInclusive: java.time.LocalDateTime,
+    ): List<Ejecucion> {
+        return ejecucionDao.getCompletedBetween(
+            startInclusive = startInclusive,
+            endInclusive = endInclusive,
+        ).map { it.toDomain() }
+    }
+
+    override suspend fun getLatestCompletedBetween(
+        tareaId: Long,
+        startInclusive: java.time.LocalDateTime,
+        endInclusive: java.time.LocalDateTime,
+    ): Ejecucion? {
+        return ejecucionDao.getLatestCompletedBetween(
+            tareaId = tareaId,
+            startInclusive = startInclusive,
+            endInclusive = endInclusive,
+        )?.toDomain()
+    }
+
     override suspend fun create(ejecucion: Ejecucion): Long = ejecucionDao.insert(ejecucion.toEntity())
 
     override suspend fun deleteById(id: Long) {

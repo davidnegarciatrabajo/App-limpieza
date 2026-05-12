@@ -19,6 +19,7 @@ import com.dngarcia.tareasdiarias.presentation.common.UserError
 import com.dngarcia.tareasdiarias.presentation.common.toUserError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.time.LocalDate
 import java.time.LocalTime
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -40,6 +41,7 @@ data class EditarTareaUiState(
     val periodicidad: Periodicidad = Periodicidad.DIARIA,
     val diasPersonalizados: String = "",
     val notas: String = "",
+    val fechaInicio: LocalDate = LocalDate.now(),
     val horaRecordatorio: LocalTime? = null,
     val categorias: List<Categoria> = emptyList(),
     val nombreError: String? = null,
@@ -108,6 +110,7 @@ class EditarTareaViewModel @Inject constructor(
                         periodicidad = task.tipoPeriodicidad,
                         diasPersonalizados = task.diasPeriodicidad?.toString().orEmpty(),
                         notas = task.notas,
+                        fechaInicio = task.fechaInicio,
                         horaRecordatorio = task.horaRecordatorio,
                         isLoading = false,
                         loadError = null,
@@ -149,6 +152,10 @@ class EditarTareaViewModel @Inject constructor(
 
     fun onNotasChange(value: String) {
         _uiState.update { it.copy(notas = value, saveError = null) }
+    }
+
+    fun onFechaInicioChange(value: LocalDate) {
+        _uiState.update { it.copy(fechaInicio = value, saveError = null) }
     }
 
     fun onHoraRecordatorioChange(value: LocalTime) {
@@ -232,6 +239,7 @@ class EditarTareaViewModel @Inject constructor(
                         notas = current.notas,
                         periodicidad = current.periodicidad,
                         diasPeriodicidad = periodicidadDays,
+                        fechaInicio = current.fechaInicio,
                         horaRecordatorio = current.horaRecordatorio,
                     ),
                 )

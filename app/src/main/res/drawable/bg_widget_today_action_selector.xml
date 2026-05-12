@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#E2D2A9" />
+            <stroke
+                android:width="1dp"
+                android:color="#9F7A48" />
+            <corners android:radius="999dp" />
+        </shape>
+    </item>
+    <item android:drawable="@drawable/bg_widget_today_action" />
+</selector>

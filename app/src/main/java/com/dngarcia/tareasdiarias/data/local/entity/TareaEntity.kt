@@ -7,6 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -44,6 +45,8 @@ data class TareaEntity(
     val diasPeriodicidad: Int?,
     @ColumnInfo(name = "notas")
     val notas: String,
+    @ColumnInfo(name = "fecha_inicio")
+    val fechaInicio: LocalDate,
     @ColumnInfo(name = "fecha_creacion")
     val fechaCreacion: LocalDateTime,
     @ColumnInfo(name = "fecha_ultima_modificacion")

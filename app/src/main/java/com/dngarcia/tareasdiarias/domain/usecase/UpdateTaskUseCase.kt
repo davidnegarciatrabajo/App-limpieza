@@ -3,6 +3,7 @@ package com.dngarcia.tareasdiarias.domain.usecase
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.model.Tarea
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import javax.inject.Inject
@@ -15,6 +16,7 @@ data class UpdateTaskParams(
     val notas: String,
     val diasPeriodicidad: Int?,
     val periodicidad: com.dngarcia.tareasdiarias.domain.model.Periodicidad,
+    val fechaInicio: LocalDate,
     val horaRecordatorio: LocalTime?,
 )
 
@@ -26,15 +28,23 @@ class UpdateTaskUseCase @Inject constructor(
     suspend operator fun invoke(params: UpdateTaskParams) {
         val currentTask = tareaRepository.getById(params.taskId) ?: return
         val now = LocalDateTime.now()
+        val nextExecutionAt = TaskReminderPolicy.calculateNextExecutionAt(
+            periodicidad = params.periodicidad,
+            diasPeriodicidad = params.diasPeriodicidad,
+            fechaInicio = params.fechaInicio,
+            referenceDate = now.toLocalDate(),
+        )
         val reminderAt = TaskReminderPolicy.calculateReminderAt(
             periodicidad = params.periodicidad,
             diasPeriodicidad = params.diasPeriodicidad,
-            baseDateTime = now,
+            fechaInicio = params.fechaInicio,
+            fechaProximaEjecucion = nextExecutionAt,
             horaRecordatorio = params.horaRecordatorio,
+            now = now,
         )
         val shouldIncrementPostponements = PostponementPolicy.shouldIncrement(
             currentDueDate = currentTask.fechaProximaEjecucion,
-            updatedDueDate = reminderAt,
+            updatedDueDate = nextExecutionAt,
         )
 
         val updatedTask = currentTask.copy(
@@ -44,8 +54,9 @@ class UpdateTaskUseCase @Inject constructor(
             notas = params.notas.trim(),
             tipoPeriodicidad = params.periodicidad,
             diasPeriodicidad = params.diasPeriodicidad,
+            fechaInicio = params.fechaInicio,
             fechaUltimaModificacion = now,
-            fechaProximaEjecucion = reminderAt,
+            fechaProximaEjecucion = nextExecutionAt,
             horaRecordatorio = params.horaRecordatorio,
             cantidadPostergaciones = if (shouldIncrementPostponements) {
                 currentTask.cantidadPostergaciones + 1

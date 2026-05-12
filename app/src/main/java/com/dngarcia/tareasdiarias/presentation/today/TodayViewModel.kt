@@ -53,7 +53,13 @@ class TodayViewModel @Inject constructor(
         observePendingTasksUseCase(
             filter = TaskPeriodicityFilter.ALL,
             sortOrder = TaskSortOrder.HIGHEST_DELAY,
-        ).catch { throwable ->
+        ).map { tasks ->
+            val today = LocalDateTime.now().toLocalDate()
+            tasks.filter { task ->
+                val dueDate = task.fechaProximaEjecucion?.toLocalDate() ?: return@filter false
+                !dueDate.isAfter(today)
+            }
+        }.catch { throwable ->
             userError.value = throwable.toUserError()
             emit(emptyList())
         }

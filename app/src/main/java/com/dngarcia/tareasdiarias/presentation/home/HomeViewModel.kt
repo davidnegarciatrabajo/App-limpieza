@@ -8,17 +8,21 @@ import kotlinx.coroutines.flow.asStateFlow
 data class HomeUiState(
     val cards: List<HomeCardItem> = listOf(
         HomeCardItem.Tasks,
+        HomeCardItem.TopTen,
         HomeCardItem.NewTask,
         HomeCardItem.Categories,
-        HomeCardItem.Today
+        HomeCardItem.Today,
+        HomeCardItem.Tomorrow,
     )
 )
 
 enum class HomeCardItem {
     Tasks,
+    TopTen,
     NewTask,
     Categories,
-    Today
+    Today,
+    Tomorrow,
 }
 
 class HomeViewModel : ViewModel() {

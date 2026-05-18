@@ -1,5 +1,6 @@
 package com.dngarcia.tareasdiarias.domain.usecase
 
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.model.TaskAdvancedFilters
@@ -41,6 +42,7 @@ class CreateTaskUseCaseTest {
 
         assertEquals(99L, taskId)
         assertEquals("Limpiar cocina", fakeRepository.lastCreatedTask?.nombre)
+        assertEquals(ModoProximoCiclo.ANCLADO_FECHA_INICIO, fakeRepository.lastCreatedTask?.modoProximoCiclo)
         assertEquals("Encimera y hornallas", fakeRepository.lastCreatedTask?.subtitulo)
         assertEquals(LocalDate.of(2026, 5, 8), fakeRepository.lastCreatedTask?.fechaInicio)
         assertNotNull(fakeScheduler.lastScheduledReminder)

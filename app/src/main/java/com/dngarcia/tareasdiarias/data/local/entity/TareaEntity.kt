@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -52,6 +53,8 @@ data class TareaEntity(
     val fechaCreacion: LocalDateTime,
     @ColumnInfo(name = "fecha_ultima_modificacion")
     val fechaUltimaModificacion: LocalDateTime = fechaCreacion,
+    @ColumnInfo(name = "modo_proximo_ciclo")
+    val modoProximoCiclo: ModoProximoCiclo = ModoProximoCiclo.ANCLADO_FECHA_INICIO,
     @ColumnInfo(name = "fecha_proxima_ejecucion")
     val fechaProximaEjecucion: LocalDateTime?,
     @ColumnInfo(name = "fecha_visible_desde")

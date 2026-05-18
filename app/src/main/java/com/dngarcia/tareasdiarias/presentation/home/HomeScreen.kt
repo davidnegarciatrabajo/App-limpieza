@@ -24,6 +24,8 @@ fun HomeRoute(
     onTasksClick: () -> Unit,
     onNewTaskClick: () -> Unit,
     onTodayClick: () -> Unit,
+    onTomorrowClick: () -> Unit,
+    onTopTenClick: () -> Unit,
     onCategoriesClick: () -> Unit,
     viewModel: HomeViewModel = viewModel(),
     modifier: Modifier = Modifier
@@ -34,6 +36,8 @@ fun HomeRoute(
         onTasksClick = onTasksClick,
         onNewTaskClick = onNewTaskClick,
         onTodayClick = onTodayClick,
+        onTomorrowClick = onTomorrowClick,
+        onTopTenClick = onTopTenClick,
         onCategoriesClick = onCategoriesClick,
         modifier = modifier
     )
@@ -45,6 +49,8 @@ fun HomeScreen(
     onTasksClick: () -> Unit,
     onNewTaskClick: () -> Unit,
     onTodayClick: () -> Unit,
+    onTomorrowClick: () -> Unit,
+    onTopTenClick: () -> Unit,
     onCategoriesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -66,6 +72,8 @@ fun HomeScreen(
                     onTasksClick = onTasksClick,
                     onNewTaskClick = onNewTaskClick,
                     onTodayClick = onTodayClick,
+                    onTomorrowClick = onTomorrowClick,
+                    onTopTenClick = onTopTenClick,
                     onCategoriesClick = onCategoriesClick,
                 )
             }
@@ -79,16 +87,22 @@ private fun HomeAccessCard(
     onTasksClick: () -> Unit,
     onNewTaskClick: () -> Unit,
     onTodayClick: () -> Unit,
+    onTomorrowClick: () -> Unit,
+    onTopTenClick: () -> Unit,
     onCategoriesClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val titleRes = when (cardItem) {
         HomeCardItem.Tasks -> R.string.home_card_tasks
+        HomeCardItem.TopTen -> R.string.home_card_top_ten
         HomeCardItem.NewTask -> R.string.home_card_new_task
         HomeCardItem.Categories -> R.string.home_card_categories
         HomeCardItem.Today -> R.string.home_card_today
+        HomeCardItem.Tomorrow -> R.string.home_card_tomorrow
     }
     val isEnabledCard = cardItem == HomeCardItem.Today ||
+        cardItem == HomeCardItem.Tomorrow ||
+        cardItem == HomeCardItem.TopTen ||
         cardItem == HomeCardItem.Tasks ||
         cardItem == HomeCardItem.NewTask ||
         cardItem == HomeCardItem.Categories
@@ -99,8 +113,10 @@ private fun HomeAccessCard(
             .clickable(enabled = isEnabledCard) {
                 when (cardItem) {
                     HomeCardItem.Tasks -> onTasksClick()
+                    HomeCardItem.TopTen -> onTopTenClick()
                     HomeCardItem.NewTask -> onNewTaskClick()
                     HomeCardItem.Today -> onTodayClick()
+                    HomeCardItem.Tomorrow -> onTomorrowClick()
                     HomeCardItem.Categories -> onCategoriesClick()
                 }
             },

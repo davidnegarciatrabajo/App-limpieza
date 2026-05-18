@@ -1,6 +1,7 @@
 package com.dngarcia.tareasdiarias.domain.usecase
 
 import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.model.Tarea
@@ -19,6 +20,7 @@ data class CreateTaskParams(
     val notas: String,
     val fechaInicio: LocalDate,
     val horaRecordatorio: LocalTime?,
+    val modoProximoCiclo: ModoProximoCiclo = ModoProximoCiclo.ANCLADO_FECHA_INICIO,
 )
 
 class CreateTaskUseCase @Inject constructor(
@@ -54,6 +56,7 @@ class CreateTaskUseCase @Inject constructor(
                 fechaInicio = params.fechaInicio,
                 fechaCreacion = now,
                 fechaUltimaModificacion = now,
+                modoProximoCiclo = params.modoProximoCiclo,
                 fechaProximaEjecucion = nextExecutionAt,
                 fechaVisibleDesde = TaskTimelinePolicy.defaultVisibleFrom(nextExecutionAt),
                 horaRecordatorio = params.horaRecordatorio,

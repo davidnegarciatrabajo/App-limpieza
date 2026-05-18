@@ -16,6 +16,8 @@ class TodayWidgetDatabaseObserver @Inject constructor(
     private val observer = object : InvalidationTracker.Observer("tarea", "ejecucion", "categoria") {
         override fun onInvalidated(tables: Set<String>) {
             if (tables.isNotEmpty()) {
+                // Unificado en TodayWidgetUpdater (hilo principal + coalescing); evita condiciones de carrera
+                // con RemoteViews en algunos OEMs cuando la invalidación llega desde el executor de Room.
                 todayWidgetUpdater.refreshAll()
             }
         }

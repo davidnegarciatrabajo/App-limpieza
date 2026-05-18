@@ -50,6 +50,31 @@ object TaskReminderPolicy {
         return candidate.atStartOfDay()
     }
 
+    /**
+     * Tras completar: siguiente ciclo = [completedDate] más **un** intervalo del tipo de periodicidad.
+     * Mensual/semestral usan [LocalDate.plusMonths] (p. ej. 31 ene + 1 mes → 28/29 feb según el año).
+     */
+    fun calculateNextExecutionFloatingAfterCompletion(
+        periodicidad: Periodicidad,
+        diasPeriodicidad: Int?,
+        completedDate: LocalDate,
+    ): LocalDateTime? {
+        if (periodicidad == Periodicidad.UNICA) return null
+        val nextDate = when (periodicidad) {
+            Periodicidad.DIARIA -> completedDate.plusDays(1)
+            Periodicidad.SEMANAL -> completedDate.plusDays(7)
+            Periodicidad.MENSUAL -> completedDate.plusMonths(1)
+            Periodicidad.SEMESTRAL -> completedDate.plusMonths(6)
+            Periodicidad.PERSONALIZADA -> {
+                val days = diasPeriodicidad ?: return null
+                if (days <= 0) return null
+                completedDate.plusDays(days.toLong())
+            }
+            Periodicidad.UNICA -> return null
+        }
+        return nextDate.atStartOfDay()
+    }
+
     fun calculateReminderAt(
         periodicidad: Periodicidad,
         diasPeriodicidad: Int?,

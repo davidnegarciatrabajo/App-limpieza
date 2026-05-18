@@ -1,14 +1,16 @@
-package com.dngarcia.tareasdiarias.presentation.today
+package com.dngarcia.tareasdiarias.presentation.tomorrow
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dngarcia.tareasdiarias.domain.usecase.CompleteTaskUseCase
-import com.dngarcia.tareasdiarias.domain.usecase.ObserveTodayTasksUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.ObserveTomorrowTasksUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.PostponeTaskUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.UndoTaskCompletionUseCase
 import com.dngarcia.tareasdiarias.presentation.common.TaskStatusItemUiModel
 import com.dngarcia.tareasdiarias.presentation.common.UserError
 import com.dngarcia.tareasdiarias.presentation.common.toUserError
+import com.dngarcia.tareasdiarias.presentation.today.DayAgendaTaskUiModel
+import com.dngarcia.tareasdiarias.presentation.today.DayAgendaUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
 import javax.inject.Inject
@@ -25,8 +27,8 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
-class TodayViewModel @Inject constructor(
-    observeTodayTasksUseCase: ObserveTodayTasksUseCase,
+class TomorrowViewModel @Inject constructor(
+    observeTomorrowTasksUseCase: ObserveTomorrowTasksUseCase,
     private val completeTaskUseCase: CompleteTaskUseCase,
     private val undoTaskCompletionUseCase: UndoTaskCompletionUseCase,
     private val postponeTaskUseCase: PostponeTaskUseCase,
@@ -35,7 +37,7 @@ class TodayViewModel @Inject constructor(
     private val refreshSignal = MutableStateFlow(0)
 
     private val tasksFlow = refreshSignal.flatMapLatest {
-        observeTodayTasksUseCase().map { tasks ->
+        observeTomorrowTasksUseCase().map { tasks ->
             tasks.map { task ->
                 DayAgendaTaskUiModel(
                     item = TaskStatusItemUiModel(

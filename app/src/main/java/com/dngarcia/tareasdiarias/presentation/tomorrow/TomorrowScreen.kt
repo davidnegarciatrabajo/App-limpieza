@@ -1,4 +1,4 @@
-package com.dngarcia.tareasdiarias.presentation.today
+package com.dngarcia.tareasdiarias.presentation.tomorrow
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -6,28 +6,29 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dngarcia.tareasdiarias.R
 import com.dngarcia.tareasdiarias.presentation.common.MainBottomDestination
+import com.dngarcia.tareasdiarias.presentation.today.DayAgendaScreen
 
 @Composable
-fun TodayRoute(
-    onOpenHome: () -> Unit,
+fun TomorrowRoute(
+    onOpenToday: () -> Unit,
     onOpenTomorrow: () -> Unit,
     onOpenTopTen: () -> Unit,
     onOpenTasks: () -> Unit,
     onOpenMenu: () -> Unit,
     onAddTask: () -> Unit,
     onEditTask: (Long) -> Unit,
-    viewModel: TodayViewModel = hiltViewModel(),
+    viewModel: TomorrowViewModel = hiltViewModel(),
     modifier: Modifier = Modifier,
 ) {
     val uiState = viewModel.uiState.collectAsState().value
     DayAgendaScreen(
         uiState = uiState,
-        titleResId = R.string.today_title,
-        emptyStateResId = R.string.today_empty_state,
-        toolbarTrailingIconResId = R.drawable.ic_today_toolbar_today,
-        toolbarIconContentDescriptionResId = R.string.today_title,
-        selectedDestination = MainBottomDestination.TODAY,
-        onOpenToday = onOpenHome,
+        titleResId = R.string.tomorrow_title,
+        emptyStateResId = R.string.tomorrow_empty_state,
+        toolbarTrailingIconResId = R.drawable.ic_tomorrow_tab_calendar,
+        toolbarIconContentDescriptionResId = R.string.tomorrow_title,
+        selectedDestination = MainBottomDestination.TOMORROW,
+        onOpenToday = onOpenToday,
         onOpenTomorrow = onOpenTomorrow,
         onOpenTopTen = onOpenTopTen,
         onOpenTasks = onOpenTasks,

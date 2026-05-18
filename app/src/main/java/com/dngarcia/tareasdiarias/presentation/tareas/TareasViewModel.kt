@@ -9,7 +9,6 @@ import com.dngarcia.tareasdiarias.domain.model.TaskSortOrder
 import com.dngarcia.tareasdiarias.domain.usecase.DeleteTaskUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.ObserveCategoriasUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.ObservePendingTasksUseCase
-import com.dngarcia.tareasdiarias.domain.usecase.ObserveTopPendingTasksUseCase
 import com.dngarcia.tareasdiarias.presentation.common.TaskStatusItemUiModel
 import com.dngarcia.tareasdiarias.presentation.common.UserError
 import com.dngarcia.tareasdiarias.presentation.common.toTaskStatusItemUiModel
@@ -35,7 +34,6 @@ data class TareasUiState(
     val includeNotesInSearch: Boolean = true,
     val advancedFilters: TaskAdvancedFilters = TaskAdvancedFilters(),
     val categorias: List<Categoria> = emptyList(),
-    val topPendingTasks: List<TaskStatusItemUiModel> = emptyList(),
     val filteredTasks: List<TaskStatusItemUiModel> = emptyList(),
     val isLoading: Boolean = true,
     val userError: UserError? = null,
@@ -57,7 +55,6 @@ private const val SEARCH_DEBOUNCE_MS = 300L
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class TareasViewModel @Inject constructor(
-    observeTopPendingTasksUseCase: ObserveTopPendingTasksUseCase,
     observeCategoriasUseCase: ObserveCategoriasUseCase,
     private val observePendingTasksUseCase: ObservePendingTasksUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase,
@@ -101,13 +98,6 @@ class TareasViewModel @Inject constructor(
             }
         }
 
-    private val topPendingSafe = refreshSignal.flatMapLatest {
-        observeTopPendingTasksUseCase(limit = 10).catch { throwable ->
-            userError.value = throwable.toUserError()
-            emit(emptyList())
-        }
-    }
-
     private val categoriasSafe = refreshSignal.flatMapLatest {
         observeCategoriasUseCase().catch { throwable ->
             userError.value = throwable.toUserError()
@@ -125,10 +115,9 @@ class TareasViewModel @Inject constructor(
     val uiState: StateFlow<TareasUiState> = combine(
         searchUiInputs,
         filteredTasksFlow,
-        topPendingSafe,
         categoriasSafe,
         userError,
-    ) { searchState, filteredTasks, topTasks, categorias, currentError ->
+    ) { searchState, filteredTasks, categorias, currentError ->
         val (query, inputs) = searchState
         TareasUiState(
             selectedFilter = inputs.periodicityFilter,
@@ -137,7 +126,6 @@ class TareasViewModel @Inject constructor(
             includeNotesInSearch = inputs.includeNotesInSearch,
             advancedFilters = inputs.advancedFilters,
             categorias = categorias,
-            topPendingTasks = topTasks.map { it.toTaskStatusItemUiModel() },
             filteredTasks = filteredTasks.map { it.toTaskStatusItemUiModel() },
             isLoading = false,
             userError = currentError,

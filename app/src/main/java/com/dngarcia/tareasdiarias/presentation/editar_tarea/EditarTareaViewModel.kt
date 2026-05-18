@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.dngarcia.tareasdiarias.R
 import com.dngarcia.tareasdiarias.presentation.navigation.AppRoute
 import com.dngarcia.tareasdiarias.domain.model.Categoria
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.Tarea
 import com.dngarcia.tareasdiarias.domain.usecase.GetTaskByIdUseCase
@@ -44,6 +45,7 @@ data class EditarTareaUiState(
     val notas: String = "",
     val fechaInicio: LocalDate = LocalDate.now(),
     val horaRecordatorio: LocalTime? = null,
+    val modoProximoCiclo: ModoProximoCiclo = ModoProximoCiclo.ANCLADO_FECHA_INICIO,
     val categorias: List<Categoria> = emptyList(),
     val nombreError: String? = null,
     val categoriaError: String? = null,
@@ -116,6 +118,7 @@ class EditarTareaViewModel @Inject constructor(
                         notas = task.notas,
                         fechaInicio = task.fechaInicio,
                         horaRecordatorio = task.horaRecordatorio,
+                        modoProximoCiclo = task.modoProximoCiclo,
                         isLoading = false,
                         loadError = null,
                         isTaskReady = true,
@@ -147,7 +150,18 @@ class EditarTareaViewModel @Inject constructor(
     }
 
     fun onPeriodicidadSelected(periodicidad: Periodicidad) {
-        _uiState.update { it.copy(periodicidad = periodicidad, periodicidadError = null, saveError = null) }
+        _uiState.update {
+            it.copy(
+                periodicidad = periodicidad,
+                periodicidadError = null,
+                saveError = null,
+                modoProximoCiclo = if (periodicidad == Periodicidad.UNICA) {
+                    ModoProximoCiclo.ANCLADO_FECHA_INICIO
+                } else {
+                    it.modoProximoCiclo
+                },
+            )
+        }
     }
 
     fun onDiasPersonalizadosChange(value: String) {
@@ -168,6 +182,10 @@ class EditarTareaViewModel @Inject constructor(
 
     fun onClearHoraRecordatorio() {
         _uiState.update { it.copy(horaRecordatorio = null, saveError = null) }
+    }
+
+    fun onModoProximoCicloSelected(modo: ModoProximoCiclo) {
+        _uiState.update { it.copy(modoProximoCiclo = modo, saveError = null) }
     }
 
     fun onConfirmModificationClick() {
@@ -253,6 +271,11 @@ class EditarTareaViewModel @Inject constructor(
                         diasPeriodicidad = periodicidadDays,
                         fechaInicio = current.fechaInicio,
                         horaRecordatorio = current.horaRecordatorio,
+                        modoProximoCiclo = if (current.periodicidad == Periodicidad.UNICA) {
+                            ModoProximoCiclo.ANCLADO_FECHA_INICIO
+                        } else {
+                            current.modoProximoCiclo
+                        },
                     ),
                 )
                 _finishEvent.emit(Unit)

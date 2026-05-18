@@ -6,6 +6,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.widget.RemoteViews
 import androidx.core.os.bundleOf
 import com.dngarcia.tareasdiarias.R
@@ -107,8 +109,24 @@ class TodayWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private val widgetScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+        private val mainHandler = Handler(Looper.getMainLooper())
+        private var refreshAppContext: Context? = null
+        private val coalescedRefresh = Runnable {
+            val ctx = refreshAppContext ?: return@Runnable
+            refreshAllNow(ctx)
+        }
 
+        /**
+         * Programa un refresco en el hilo principal y **coalescea** llamadas seguidas.
+         * Ver [TodayWidgetUpdater] para el contexto de uso (invalidación Room + acciones del widget).
+         */
         fun refreshAll(context: Context) {
+            refreshAppContext = context.applicationContext
+            mainHandler.removeCallbacks(coalescedRefresh)
+            mainHandler.post(coalescedRefresh)
+        }
+
+        private fun refreshAllNow(context: Context) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
             val appWidgetIds = appWidgetManager.getAppWidgetIds(
                 ComponentName(context, TodayWidgetProvider::class.java),

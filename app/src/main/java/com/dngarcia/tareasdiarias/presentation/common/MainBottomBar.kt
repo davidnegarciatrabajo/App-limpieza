@@ -6,11 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +28,8 @@ import com.dngarcia.tareasdiarias.R
 
 enum class MainBottomDestination {
     TODAY,
+    TOMORROW,
+    TOP_TEN,
     TASKS,
     MENU,
 }
@@ -36,6 +38,8 @@ enum class MainBottomDestination {
 fun MainBottomBar(
     selectedDestination: MainBottomDestination,
     onOpenToday: () -> Unit,
+    onOpenTomorrow: () -> Unit,
+    onOpenTopTen: () -> Unit,
     onOpenTasks: () -> Unit,
     onOpenMenu: () -> Unit,
     modifier: Modifier = Modifier,
@@ -62,6 +66,20 @@ fun MainBottomBar(
                 preserveOriginalColors = true,
             )
             MainBottomBarItem(
+                iconRes = R.drawable.ic_tomorrow_tab_calendar,
+                label = stringResource(id = R.string.tomorrow_title),
+                selected = selectedDestination == MainBottomDestination.TOMORROW,
+                onClick = onOpenTomorrow,
+                preserveOriginalColors = true,
+            )
+            MainBottomBarItem(
+                iconRes = R.drawable.ic_top10_tab_calendar,
+                label = stringResource(id = R.string.top10_tab_label),
+                selected = selectedDestination == MainBottomDestination.TOP_TEN,
+                onClick = onOpenTopTen,
+                preserveOriginalColors = true,
+            )
+            MainBottomBarItem(
                 iconRes = R.drawable.ic_today_tasks_photo,
                 label = stringResource(id = R.string.tasks_title),
                 selected = selectedDestination == MainBottomDestination.TASKS,
@@ -73,13 +91,14 @@ fun MainBottomBar(
                 label = stringResource(id = R.string.today_menu),
                 selected = selectedDestination == MainBottomDestination.MENU,
                 onClick = onOpenMenu,
+                preserveOriginalColors = true,
             )
         }
     }
 }
 
 @Composable
-private fun MainBottomBarItem(
+private fun RowScope.MainBottomBarItem(
     iconRes: Int,
     label: String,
     selected: Boolean,
@@ -88,7 +107,7 @@ private fun MainBottomBarItem(
 ) {
     Column(
         modifier = Modifier
-            .width(78.dp)
+            .weight(1f)
             .clip(RoundedCornerShape(18.dp))
             .background(
                 if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
@@ -108,7 +127,7 @@ private fun MainBottomBarItem(
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant
             },
-            modifier = Modifier.size(if (preserveOriginalColors) 26.dp else 24.dp),
+            modifier = Modifier.size(24.dp),
         )
         Text(
             text = label,

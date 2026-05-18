@@ -2,6 +2,7 @@ package com.dngarcia.tareasdiarias.domain.usecase
 
 import com.dngarcia.tareasdiarias.domain.model.Ejecucion
 import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.TaskAdvancedFilters
 import com.dngarcia.tareasdiarias.domain.model.TaskPeriodicityFilter
@@ -23,6 +24,29 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CompleteTaskUseCaseTest {
+    @Test
+    fun invoke_floatingMode_weekly_usesCompletionPlusSevenDays() = runBlocking {
+        val repository = FakeTareaRepository().apply {
+            modoOnTask = ModoProximoCiclo.INTERVALO_DESDE_COMPLETADO
+            tipoOnTask = Periodicidad.SEMANAL
+            fechaInicioOnTask = LocalDate.of(2026, 5, 1)
+        }
+        val executionRepository = FakeEjecucionRepository()
+        val scheduler = FakeTaskReminderScheduler()
+        val useCase = CompleteTaskUseCase(
+            tareaRepository = repository,
+            ejecucionRepository = executionRepository,
+            scheduleTaskReminderUseCase = ScheduleTaskReminderUseCase(scheduler),
+            cancelTaskReminderUseCase = CancelTaskReminderUseCase(scheduler),
+        )
+        val completedAt = LocalDateTime.of(2026, 5, 14, 9, 30)
+
+        useCase(taskId = 7L, completedAt = completedAt)
+
+        assertEquals(LocalDateTime.of(2026, 5, 21, 0, 0), repository.updatedTask?.fechaProximaEjecucion)
+        assertEquals(LocalDate.of(2026, 5, 21), repository.updatedTask?.fechaVisibleDesde)
+    }
+
     @Test
     fun invoke_createsExecutionAndMovesTaskToNextCycle() = runBlocking {
         val repository = FakeTareaRepository()
@@ -75,6 +99,9 @@ class CompleteTaskUseCaseTest {
     private class FakeTareaRepository : TareaRepository {
         var updatedTask: Tarea? = null
         var cantidadPostergacionesOnTask: Int = 0
+        var modoOnTask: ModoProximoCiclo = ModoProximoCiclo.ANCLADO_FECHA_INICIO
+        var tipoOnTask: Periodicidad = Periodicidad.DIARIA
+        var fechaInicioOnTask: LocalDate = LocalDate.of(2026, 5, 1)
 
         override fun observeAll(): Flow<List<Tarea>> = emptyFlow()
         override fun observeTopPending(limit: Int): Flow<List<Tarea>> = emptyFlow()
@@ -93,12 +120,13 @@ class CompleteTaskUseCaseTest {
             nombre = "Limpiar cocina",
             subtitulo = "",
             categoriaId = 1L,
-            tipoPeriodicidad = Periodicidad.DIARIA,
+            tipoPeriodicidad = tipoOnTask,
             diasPeriodicidad = null,
             notas = "",
-            fechaInicio = LocalDate.of(2026, 5, 1),
+            fechaInicio = fechaInicioOnTask,
             fechaCreacion = LocalDateTime.of(2026, 5, 1, 8, 0),
             fechaUltimaModificacion = LocalDateTime.of(2026, 5, 10, 8, 0),
+            modoProximoCiclo = modoOnTask,
             fechaProximaEjecucion = LocalDateTime.of(2026, 5, 11, 0, 0),
             fechaVisibleDesde = LocalDate.of(2026, 5, 11),
             horaRecordatorio = LocalTime.of(8, 0),

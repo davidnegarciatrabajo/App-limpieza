@@ -15,7 +15,8 @@ data class Tarea(
     val fechaInicio: LocalDate,
     val fechaCreacion: LocalDateTime,
     val fechaUltimaModificacion: LocalDateTime = fechaCreacion,
-    // `fechaProximaEjecucion` representa el ciclo esperado real anclado en `fechaInicio`.
+    val modoProximoCiclo: ModoProximoCiclo = ModoProximoCiclo.ANCLADO_FECHA_INICIO,
+    // Próximo ciclo esperado; al completar, su cálculo depende de `modoProximoCiclo`.
     val fechaProximaEjecucion: LocalDateTime?,
     // `fechaVisibleDesde` controla cuando vuelve a aparecer en Today tras una postergacion.
     val fechaVisibleDesde: LocalDate?,

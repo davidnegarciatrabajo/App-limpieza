@@ -1,5 +1,7 @@
 package com.dngarcia.tareasdiarias.domain.usecase
 
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
+import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.model.Tarea
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
@@ -15,9 +17,10 @@ data class UpdateTaskParams(
     val categoriaId: Long,
     val notas: String,
     val diasPeriodicidad: Int?,
-    val periodicidad: com.dngarcia.tareasdiarias.domain.model.Periodicidad,
+    val periodicidad: Periodicidad,
     val fechaInicio: LocalDate,
     val horaRecordatorio: LocalTime?,
+    val modoProximoCiclo: ModoProximoCiclo = ModoProximoCiclo.ANCLADO_FECHA_INICIO,
 )
 
 class UpdateTaskUseCase @Inject constructor(
@@ -63,6 +66,7 @@ class UpdateTaskUseCase @Inject constructor(
             fechaProximaEjecucion = nextExecutionAt,
             fechaVisibleDesde = visibleFrom,
             horaRecordatorio = params.horaRecordatorio,
+            modoProximoCiclo = params.modoProximoCiclo,
         )
         tareaRepository.update(updatedTask)
 

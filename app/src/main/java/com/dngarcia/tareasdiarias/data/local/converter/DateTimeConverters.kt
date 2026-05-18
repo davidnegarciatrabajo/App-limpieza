@@ -2,6 +2,7 @@ package com.dngarcia.tareasdiarias.data.local.converter
 
 import androidx.room.TypeConverter
 import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import java.time.Instant
 import java.time.LocalDate
@@ -49,5 +50,11 @@ class DateTimeConverters {
 
     @TypeConverter
     fun stringToEstadoAlerta(value: String): EstadoAlerta = EstadoAlerta.valueOf(value)
+
+    @TypeConverter
+    fun modoProximoCicloToString(value: ModoProximoCiclo): String = value.name
+
+    @TypeConverter
+    fun stringToModoProximoCiclo(value: String): ModoProximoCiclo = ModoProximoCiclo.valueOf(value)
 }
 

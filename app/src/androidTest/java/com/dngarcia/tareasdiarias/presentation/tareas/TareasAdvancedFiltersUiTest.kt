@@ -93,7 +93,6 @@ class TareasAdvancedFiltersUiTest {
                 }
                 TareasScreen(
                     uiState = TareasUiState(
-                        topPendingTasks = filtered,
                         filteredTasks = filtered,
                         advancedFilters = advanced,
                         isLoading = false,
@@ -114,6 +113,8 @@ class TareasAdvancedFiltersUiTest {
                     onDismissUserError = {},
                     onRetryLoadTasks = {},
                     onOpenToday = {},
+                    onOpenTomorrow = {},
+                    onOpenTopTen = {},
                     onOpenMenu = {},
                     onAddTaskClick = {},
                     onTaskClick = {},

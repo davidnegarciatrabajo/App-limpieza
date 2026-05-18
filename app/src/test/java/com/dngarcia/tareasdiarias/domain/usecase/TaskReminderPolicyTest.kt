@@ -122,4 +122,44 @@ class TaskReminderPolicyTest {
         assertEquals(true, TaskReminderPolicy.requiresExactAlarm(LocalTime.of(9, 0)))
         assertEquals(false, TaskReminderPolicy.requiresExactAlarm(null))
     }
+
+    @Test
+    fun calculateNextExecutionFloatingAfterCompletion_daily_addsOneDay() {
+        val result = TaskReminderPolicy.calculateNextExecutionFloatingAfterCompletion(
+            periodicidad = Periodicidad.DIARIA,
+            diasPeriodicidad = null,
+            completedDate = LocalDate.of(2026, 5, 11),
+        )
+        assertEquals(LocalDateTime.of(2026, 5, 12, 0, 0), result)
+    }
+
+    @Test
+    fun calculateNextExecutionFloatingAfterCompletion_weekly_addsSevenDays() {
+        val result = TaskReminderPolicy.calculateNextExecutionFloatingAfterCompletion(
+            periodicidad = Periodicidad.SEMANAL,
+            diasPeriodicidad = null,
+            completedDate = LocalDate.of(2026, 5, 14),
+        )
+        assertEquals(LocalDateTime.of(2026, 5, 21, 0, 0), result)
+    }
+
+    @Test
+    fun calculateNextExecutionFloatingAfterCompletion_custom_usesIntervalDays() {
+        val result = TaskReminderPolicy.calculateNextExecutionFloatingAfterCompletion(
+            periodicidad = Periodicidad.PERSONALIZADA,
+            diasPeriodicidad = 10,
+            completedDate = LocalDate.of(2026, 5, 1),
+        )
+        assertEquals(LocalDateTime.of(2026, 5, 11, 0, 0), result)
+    }
+
+    @Test
+    fun calculateNextExecutionFloatingAfterCompletion_unique_returnsNull() {
+        val result = TaskReminderPolicy.calculateNextExecutionFloatingAfterCompletion(
+            periodicidad = Periodicidad.UNICA,
+            diasPeriodicidad = null,
+            completedDate = LocalDate.of(2026, 5, 1),
+        )
+        assertNull(result)
+    }
 }

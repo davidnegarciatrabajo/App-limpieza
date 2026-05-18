@@ -35,10 +35,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.dngarcia.tareasdiarias.R
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.presentation.common.AppTopBar
 import com.dngarcia.tareasdiarias.presentation.common.OptionalReminderTimeField
 import com.dngarcia.tareasdiarias.presentation.common.RequiredTaskDateField
+import com.dngarcia.tareasdiarias.presentation.common.TaskNextCycleModeField
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -65,6 +67,7 @@ fun NuevaTareaRoute(
         onFechaInicioChange = viewModel::onFechaInicioChange,
         onHoraRecordatorioChange = viewModel::onHoraRecordatorioChange,
         onClearHoraRecordatorio = viewModel::onClearHoraRecordatorio,
+        onModoProximoCicloSelected = viewModel::onModoProximoCicloSelected,
         onOpenCategories = onOpenCategories,
         onGuardar = viewModel::onGuardarClick,
         onDismissSaveError = viewModel::dismissSaveError,
@@ -86,6 +89,7 @@ fun NuevaTareaScreen(
     onFechaInicioChange: (LocalDate) -> Unit,
     onHoraRecordatorioChange: (LocalTime) -> Unit,
     onClearHoraRecordatorio: () -> Unit,
+    onModoProximoCicloSelected: (ModoProximoCiclo) -> Unit,
     onOpenCategories: () -> Unit,
     onGuardar: () -> Unit,
     onDismissSaveError: () -> Unit,
@@ -154,6 +158,14 @@ fun NuevaTareaScreen(
                 onDiasPersonalizadosChange = onDiasPersonalizadosChange,
             )
             uiState.periodicidadError?.let { Text(it) }
+
+            if (uiState.periodicidad != Periodicidad.UNICA) {
+                TaskNextCycleModeField(
+                    selected = uiState.modoProximoCiclo,
+                    onSelected = onModoProximoCicloSelected,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
 
             OutlinedTextField(
                 value = uiState.notas,

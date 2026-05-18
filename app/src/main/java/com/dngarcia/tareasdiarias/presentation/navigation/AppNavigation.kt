@@ -16,11 +16,15 @@ import com.dngarcia.tareasdiarias.presentation.nueva_tarea.NuevaTareaRoute
 import com.dngarcia.tareasdiarias.presentation.postpone_task.PostponeTaskRoute
 import com.dngarcia.tareasdiarias.presentation.tareas.TareasRoute
 import com.dngarcia.tareasdiarias.presentation.today.TodayRoute
+import com.dngarcia.tareasdiarias.presentation.tomorrow.TomorrowRoute
+import com.dngarcia.tareasdiarias.presentation.topten.TopTenRoute
 
 object AppRoute {
     const val HOME = "home"
     const val TASKS = "tasks"
     const val TODAY = "today"
+    const val TOMORROW = "tomorrow"
+    const val TOP_TEN = "top_ten"
     const val NEW_TASK = "new_task"
     const val EDIT_TASK = "edit_task"
     const val TASK_ID_ARG = "taskId"
@@ -68,6 +72,14 @@ fun AppNavigation(
                 onTodayClick = {
                     navController.navigate(AppRoute.TODAY)
                 },
+                onTomorrowClick = {
+                    navController.navigate(AppRoute.TOMORROW)
+                },
+                onTopTenClick = {
+                    navController.navigate(AppRoute.TOP_TEN) {
+                        launchSingleTop = true
+                    }
+                },
                 onCategoriesClick = {
                     navController.navigate(AppRoute.CATEGORIES)
                 },
@@ -88,6 +100,16 @@ fun AppNavigation(
                         launchSingleTop = true
                     }
                 },
+                onOpenTomorrow = {
+                    navController.navigate(AppRoute.TOMORROW) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenTopTen = {
+                    navController.navigate(AppRoute.TOP_TEN) {
+                        launchSingleTop = true
+                    }
+                },
                 onOpenMenu = {
                     navController.navigate(AppRoute.HOME) {
                         launchSingleTop = true
@@ -105,6 +127,86 @@ fun AppNavigation(
             TodayRoute(
                 onOpenHome = {
                     navController.navigate(AppRoute.TODAY) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenTomorrow = {
+                    navController.navigate(AppRoute.TOMORROW) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenTopTen = {
+                    navController.navigate(AppRoute.TOP_TEN) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenTasks = {
+                    navController.navigate(AppRoute.TASKS) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenMenu = {
+                    navController.navigate(AppRoute.HOME) {
+                        launchSingleTop = true
+                    }
+                },
+                onAddTask = {
+                    navController.navigate(AppRoute.NEW_TASK)
+                },
+                onEditTask = { taskId ->
+                    navController.navigate(AppRoute.editTaskRoute(taskId))
+                },
+            )
+        }
+        composable(route = AppRoute.TOMORROW) {
+            TomorrowRoute(
+                onOpenToday = {
+                    navController.navigate(AppRoute.TODAY) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenTomorrow = {
+                    navController.navigate(AppRoute.TOMORROW) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenTopTen = {
+                    navController.navigate(AppRoute.TOP_TEN) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenTasks = {
+                    navController.navigate(AppRoute.TASKS) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenMenu = {
+                    navController.navigate(AppRoute.HOME) {
+                        launchSingleTop = true
+                    }
+                },
+                onAddTask = {
+                    navController.navigate(AppRoute.NEW_TASK)
+                },
+                onEditTask = { taskId ->
+                    navController.navigate(AppRoute.editTaskRoute(taskId))
+                },
+            )
+        }
+        composable(route = AppRoute.TOP_TEN) {
+            TopTenRoute(
+                onOpenToday = {
+                    navController.navigate(AppRoute.TODAY) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenTomorrow = {
+                    navController.navigate(AppRoute.TOMORROW) {
+                        launchSingleTop = true
+                    }
+                },
+                onOpenTopTen = {
+                    navController.navigate(AppRoute.TOP_TEN) {
                         launchSingleTop = true
                     }
                 },

@@ -38,6 +38,11 @@ object TaskTimelinePolicy {
         return java.time.temporal.ChronoUnit.DAYS.between(expectedDate, date)
     }
 
+    /** True cuando el próximo ciclo programado coincide con [day] (por fecha civil). Usado por la vista Mañana. */
+    fun isExpectedCycleOnCalendarDay(task: Tarea, day: LocalDate): Boolean {
+        return expectedCycleDate(task)?.isEqual(day) == true
+    }
+
     fun nextCycleDateAfter(
         task: Tarea,
         resolvedCycleDate: LocalDate,

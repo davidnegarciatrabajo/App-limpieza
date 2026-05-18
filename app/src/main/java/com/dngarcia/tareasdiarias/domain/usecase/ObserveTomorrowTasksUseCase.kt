@@ -8,7 +8,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
-class ObserveTodayTasksUseCase @Inject constructor(
+class ObserveTomorrowTasksUseCase @Inject constructor(
     private val tareaRepository: TareaRepository,
     private val categoriaRepository: CategoriaRepository,
     private val ejecucionRepository: EjecucionRepository,
@@ -16,7 +16,7 @@ class ObserveTodayTasksUseCase @Inject constructor(
     operator fun invoke(
         referenceTime: LocalDateTime = LocalDateTime.now(),
     ): Flow<List<TodayWidgetTask>> {
-        val calendarDay = referenceTime.toLocalDate()
+        val calendarDay = referenceTime.toLocalDate().plusDays(1)
         val dayStart = calendarDay.atStartOfDay()
         val dayEnd = calendarDay.plusDays(1).atStartOfDay().minusNanos(1)
         return combine(
@@ -34,6 +34,9 @@ class ObserveTodayTasksUseCase @Inject constructor(
                     .mapValues { (_, items) -> items.maxByOrNull { it.fechaEjecucion } },
                 calendarDay = calendarDay,
                 referenceTime = referenceTime,
+                includePendingTask = { task ->
+                    TaskTimelinePolicy.isExpectedCycleOnCalendarDay(task, calendarDay)
+                },
             )
         }
     }

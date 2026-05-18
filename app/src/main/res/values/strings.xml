@@ -16,7 +16,13 @@
     <string name="categories_not_found">No encontramos esa categoria.</string>
     <string name="validation_category_name_exists">Ya existe una categoria con ese nombre.</string>
     <string name="home_card_today">Hoy</string>
+    <string name="home_card_tomorrow">Mañana</string>
+    <string name="home_card_top_ten">Top 10 pendientes</string>
     <string name="today_title">Hoy</string>
+    <string name="tomorrow_title">Mañana</string>
+    <string name="top10_tab_label">Top 10</string>
+    <string name="top10_empty_state">No hay tareas prioritarias para mostrar.</string>
+    <string name="tomorrow_empty_state">No hay tareas pendientes para mañana.</string>
     <string name="today_back_home">Volver a Inicio</string>
     <string name="today_task_one">Tomar agua</string>
     <string name="today_task_two">Ordenar escritorio</string>
@@ -110,6 +116,10 @@
     <string name="task_field_subtitle_optional">Subtitulo (opcional)</string>
     <string name="task_field_category">Categoria</string>
     <string name="task_field_periodicity">Periodicidad</string>
+    <string name="task_field_next_cycle_mode">Proximo ciclo al completar</string>
+    <string name="task_next_cycle_anchored">Segun fecha de inicio (predeterminado)</string>
+    <string name="task_next_cycle_floating">Intervalo desde el dia que la complete</string>
+    <string name="task_next_cycle_only_recurring">Solo aplica a tareas recurrentes.</string>
     <string name="task_field_notes">Notas</string>
     <string name="task_field_start_date">Fecha de inicio</string>
     <string name="task_start_date_helper">La periodicidad se cuenta desde esta fecha.</string>

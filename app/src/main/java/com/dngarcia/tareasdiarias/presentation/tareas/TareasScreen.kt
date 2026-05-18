@@ -86,6 +86,8 @@ import java.time.LocalDateTime
 @Composable
 fun TareasRoute(
     onOpenToday: () -> Unit,
+    onOpenTomorrow: () -> Unit,
+    onOpenTopTen: () -> Unit,
     onOpenMenu: () -> Unit,
     onAddTaskClick: () -> Unit,
     onTaskClick: (Long) -> Unit,
@@ -129,6 +131,8 @@ fun TareasRoute(
         onDismissUserError = viewModel::dismissUserError,
         onRetryLoadTasks = viewModel::retryLoadTasks,
         onOpenToday = onOpenToday,
+        onOpenTomorrow = onOpenTomorrow,
+        onOpenTopTen = onOpenTopTen,
         onOpenMenu = onOpenMenu,
         onAddTaskClick = onAddTaskClick,
         onTaskClick = onTaskClick,
@@ -156,6 +160,8 @@ fun TareasScreen(
     onDismissUserError: () -> Unit,
     onRetryLoadTasks: () -> Unit,
     onOpenToday: () -> Unit,
+    onOpenTomorrow: () -> Unit,
+    onOpenTopTen: () -> Unit,
     onOpenMenu: () -> Unit,
     onAddTaskClick: () -> Unit,
     onTaskClick: (Long) -> Unit,
@@ -219,6 +225,8 @@ fun TareasScreen(
             MainBottomBar(
                 selectedDestination = MainBottomDestination.TASKS,
                 onOpenToday = onOpenToday,
+                onOpenTomorrow = onOpenTomorrow,
+                onOpenTopTen = onOpenTopTen,
                 onOpenTasks = {},
                 onOpenMenu = onOpenMenu,
             )
@@ -244,28 +252,6 @@ fun TareasScreen(
                 item {
                     ExactAlarmPermissionCard(
                         onOpenSettings = onOpenExactAlarmSettings,
-                    )
-                }
-            }
-            item {
-                Text(
-                    text = stringResource(id = R.string.tasks_top_pending),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-            }
-            if (uiState.topPendingTasks.isEmpty()) {
-                item {
-                    Text(text = stringResource(id = R.string.tasks_empty_state))
-                }
-            } else {
-                items(
-                    items = uiState.topPendingTasks,
-                    key = { "top_${it.task.id}" },
-                ) { task ->
-                    TaskListRow(
-                        task = task,
-                        onClick = { onTaskClick(task.task.id) },
-                        onDeleteClick = { taskPendingDeletion = task },
                     )
                 }
             }
@@ -729,7 +715,6 @@ private fun TaskListRow(
 private fun TareasScreenPreview() {
     TareasScreen(
         uiState = TareasUiState(
-            topPendingTasks = listOf(mockTask(id = 1)),
             filteredTasks = listOf(mockTask(id = 1), mockTask(id = 2)),
         ),
         showNotificationPermissionCard = true,
@@ -748,6 +733,8 @@ private fun TareasScreenPreview() {
         onDismissUserError = {},
         onRetryLoadTasks = {},
         onOpenToday = {},
+        onOpenTomorrow = {},
+        onOpenTopTen = {},
         onOpenMenu = {},
         onAddTaskClick = {},
         onTaskClick = {},

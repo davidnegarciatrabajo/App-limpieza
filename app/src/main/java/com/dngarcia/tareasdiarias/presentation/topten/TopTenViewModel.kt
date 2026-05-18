@@ -1,16 +1,24 @@
-package com.dngarcia.tareasdiarias.presentation.today
+package com.dngarcia.tareasdiarias.presentation.topten
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dngarcia.tareasdiarias.domain.usecase.CompleteTaskUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.ObserveCategoriasUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.ObserveTodayTasksUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.ObserveTopPendingTasksUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.PostponeTaskUseCase
+import com.dngarcia.tareasdiarias.domain.usecase.TodayWidgetTask
 import com.dngarcia.tareasdiarias.domain.usecase.UndoTaskCompletionUseCase
+import com.dngarcia.tareasdiarias.domain.model.Tarea
 import com.dngarcia.tareasdiarias.presentation.common.TaskStatusItemUiModel
 import com.dngarcia.tareasdiarias.presentation.common.UserError
+import com.dngarcia.tareasdiarias.presentation.common.toTaskStatusItemUiModel
 import com.dngarcia.tareasdiarias.presentation.common.toUserError
+import com.dngarcia.tareasdiarias.presentation.today.DayAgendaTaskUiModel
+import com.dngarcia.tareasdiarias.presentation.today.DayAgendaUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,14 +27,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
-class TodayViewModel @Inject constructor(
+class TopTenViewModel @Inject constructor(
+    observeTopPendingTasksUseCase: ObserveTopPendingTasksUseCase,
     observeTodayTasksUseCase: ObserveTodayTasksUseCase,
+    observeCategoriasUseCase: ObserveCategoriasUseCase,
     private val completeTaskUseCase: CompleteTaskUseCase,
     private val undoTaskCompletionUseCase: UndoTaskCompletionUseCase,
     private val postponeTaskUseCase: PostponeTaskUseCase,
@@ -35,18 +44,17 @@ class TodayViewModel @Inject constructor(
     private val refreshSignal = MutableStateFlow(0)
 
     private val tasksFlow = refreshSignal.flatMapLatest {
-        observeTodayTasksUseCase().map { tasks ->
-            tasks.map { task ->
-                DayAgendaTaskUiModel(
-                    item = TaskStatusItemUiModel(
-                        task = task.task,
-                        status = task.status,
-                        daysDelta = task.daysDelta,
-                    ),
-                    categoryName = task.categoryName,
-                    completedOnAgendaDay = task.completedToday,
-                )
-            }
+        combine(
+            observeTopPendingTasksUseCase(limit = 10),
+            observeTodayTasksUseCase(),
+            observeCategoriasUseCase(),
+        ) { topTasks, todayTasks, categorias ->
+            mapTopTenRows(
+                topTasks = topTasks,
+                todayById = todayTasks.associateBy { it.task.id },
+                categoriasById = categorias.associate { it.id to it.nombre },
+                now = LocalDateTime.now(),
+            )
         }.catch { throwable ->
             userError.value = throwable.toUserError()
             emit(emptyList())
@@ -108,5 +116,30 @@ class TodayViewModel @Inject constructor(
                 userError.value = throwable.toUserError()
             }
         }
+    }
+}
+
+private fun mapTopTenRows(
+    topTasks: List<Tarea>,
+    todayById: Map<Long, TodayWidgetTask>,
+    categoriasById: Map<Long, String>,
+    now: LocalDateTime,
+): List<DayAgendaTaskUiModel> {
+    return topTasks.map { tarea ->
+        val tw = todayById[tarea.id]
+        val item = if (tw != null) {
+            TaskStatusItemUiModel(
+                task = tarea,
+                status = tw.status,
+                daysDelta = tw.daysDelta,
+            )
+        } else {
+            tarea.toTaskStatusItemUiModel(now)
+        }
+        DayAgendaTaskUiModel(
+            item = item,
+            categoryName = categoriasById[tarea.categoriaId].orEmpty(),
+            completedOnAgendaDay = tw?.completedToday == true,
+        )
     }
 }

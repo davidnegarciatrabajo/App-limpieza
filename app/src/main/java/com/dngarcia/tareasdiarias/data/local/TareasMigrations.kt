@@ -16,6 +16,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  * v8: `ejecucion.fecha_ciclo_resuelto` permite deshacer con semantica correcta y
  *     `tarea.categoria_id` pasa a borrar en cascada.
  * v9: `ejecucion.cantidad_postergaciones_previas` para restaurar postergaciones al deshacer completado.
+ * v10: `tarea.modo_proximo_ciclo` (default anclado al inicio, igual al comportamiento previo al completar).
  */
 object TareasMigrations {
 
@@ -174,6 +175,14 @@ object TareasMigrations {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(
                 "ALTER TABLE ejecucion ADD COLUMN cantidad_postergaciones_previas INTEGER NOT NULL DEFAULT 0",
+            )
+        }
+    }
+
+    val MIGRATION_9_10: Migration = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE tarea ADD COLUMN modo_proximo_ciclo TEXT NOT NULL DEFAULT 'ANCLADO_FECHA_INICIO'",
             )
         }
     }

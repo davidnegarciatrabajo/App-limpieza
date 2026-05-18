@@ -39,26 +39,30 @@ class GetTodayWidgetTasksUseCase @Inject constructor(
         ).groupBy { it.tareaId }
             .mapValues { (_, executions) -> executions.maxByOrNull { it.fechaEjecucion } }
 
-        return buildTodayTaskList(
+        return buildDayTaskList(
             tasks = tasks,
             categoriesById = categoriesById.mapValues { it.value.nombre },
             completedByTaskId = completedByTaskId,
+            calendarDay = today,
             referenceTime = referenceTime,
         )
     }
 }
 
-internal fun buildTodayTaskList(
+internal fun buildDayTaskList(
     tasks: List<Tarea>,
     categoriesById: Map<Long, String>,
     completedByTaskId: Map<Long, com.dngarcia.tareasdiarias.domain.model.Ejecucion?>,
+    calendarDay: LocalDate,
     referenceTime: LocalDateTime,
+    includePendingTask: (Tarea) -> Boolean = { task ->
+        TaskTimelinePolicy.shouldAppearOnDate(task, calendarDay)
+    },
 ): List<TodayWidgetTask> {
-    val today = referenceTime.toLocalDate()
     val pendingTasks = tasks
         .asSequence()
         .filter { task ->
-            TaskTimelinePolicy.shouldAppearOnDate(task, today) && task.id !in completedByTaskId
+            includePendingTask(task) && task.id !in completedByTaskId
         }
         .sortedWith(comparePendingTodayTasks(referenceTime))
         .map { task ->

@@ -1,6 +1,7 @@
 package com.dngarcia.tareasdiarias.domain.usecase
 
 import com.dngarcia.tareasdiarias.domain.model.Ejecucion
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.repository.EjecucionRepository
 import com.dngarcia.tareasdiarias.domain.repository.TareaRepository
@@ -39,12 +40,21 @@ class CompleteTaskUseCase @Inject constructor(
             ),
         )
 
-        val nextExecutionAt = TaskReminderPolicy.calculateNextExecutionAfterResolution(
-            periodicidad = task.tipoPeriodicidad,
-            diasPeriodicidad = task.diasPeriodicidad,
-            fechaInicio = task.fechaInicio,
-            resolvedAt = completedAt.toLocalDate(),
-        )
+        val nextExecutionAt = when (task.modoProximoCiclo) {
+            ModoProximoCiclo.INTERVALO_DESDE_COMPLETADO ->
+                TaskReminderPolicy.calculateNextExecutionFloatingAfterCompletion(
+                    periodicidad = task.tipoPeriodicidad,
+                    diasPeriodicidad = task.diasPeriodicidad,
+                    completedDate = completedAt.toLocalDate(),
+                )
+            ModoProximoCiclo.ANCLADO_FECHA_INICIO ->
+                TaskReminderPolicy.calculateNextExecutionAfterResolution(
+                    periodicidad = task.tipoPeriodicidad,
+                    diasPeriodicidad = task.diasPeriodicidad,
+                    fechaInicio = task.fechaInicio,
+                    resolvedAt = completedAt.toLocalDate(),
+                )
+        }
         val updatedTask = task.copy(
             fechaUltimaModificacion = completedAt,
             fechaProximaEjecucion = nextExecutionAt,

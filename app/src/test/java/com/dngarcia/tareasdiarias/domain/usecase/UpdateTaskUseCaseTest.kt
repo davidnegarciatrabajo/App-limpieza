@@ -1,6 +1,7 @@
 package com.dngarcia.tareasdiarias.domain.usecase
 
 import com.dngarcia.tareasdiarias.domain.model.EstadoAlerta
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.model.TaskReminder
 import com.dngarcia.tareasdiarias.domain.model.TaskAdvancedFilters
@@ -20,6 +21,34 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 class UpdateTaskUseCaseTest {
+    @Test
+    fun invoke_persistsModoProximoCiclo() = runBlocking {
+        val fakeRepository = FakeTareaRepository()
+        val fakeScheduler = FakeTaskReminderScheduler()
+        val useCase = UpdateTaskUseCase(
+            tareaRepository = fakeRepository,
+            scheduleTaskReminderUseCase = ScheduleTaskReminderUseCase(fakeScheduler),
+            cancelTaskReminderUseCase = CancelTaskReminderUseCase(fakeScheduler),
+        )
+
+        useCase(
+            params = UpdateTaskParams(
+                taskId = 44L,
+                nombre = "Tarea editada",
+                subtitulo = "",
+                categoriaId = 3L,
+                notas = "",
+                periodicidad = Periodicidad.SEMANAL,
+                diasPeriodicidad = null,
+                fechaInicio = LocalDate.of(2026, 5, 1),
+                horaRecordatorio = LocalTime.of(10, 30),
+                modoProximoCiclo = ModoProximoCiclo.INTERVALO_DESDE_COMPLETADO,
+            ),
+        )
+
+        assertEquals(ModoProximoCiclo.INTERVALO_DESDE_COMPLETADO, fakeRepository.lastUpdatedTask?.modoProximoCiclo)
+    }
+
     @Test
     fun invoke_updatesTaskAndSchedulesReminder() = runBlocking {
         val fakeRepository = FakeTareaRepository()

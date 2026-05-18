@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.dngarcia.tareasdiarias.R
 import com.dngarcia.tareasdiarias.domain.model.Categoria
+import com.dngarcia.tareasdiarias.domain.model.ModoProximoCiclo
 import com.dngarcia.tareasdiarias.domain.model.Periodicidad
 import com.dngarcia.tareasdiarias.domain.usecase.CreateCategoriaUseCase
 import com.dngarcia.tareasdiarias.domain.usecase.CreateTaskParams
@@ -37,6 +38,7 @@ data class NuevaTareaUiState(
     val notas: String = "",
     val fechaInicio: LocalDate = LocalDate.now(),
     val horaRecordatorio: LocalTime? = null,
+    val modoProximoCiclo: ModoProximoCiclo = ModoProximoCiclo.ANCLADO_FECHA_INICIO,
     val categorias: List<Categoria> = emptyList(),
     val crearNuevaCategoria: Boolean = false,
     val nuevaCategoriaNombre: String = "",
@@ -94,6 +96,11 @@ class NuevaTareaViewModel @Inject constructor(
                 periodicidad = periodicidad,
                 periodicidadError = null,
                 saveError = null,
+                modoProximoCiclo = if (periodicidad == Periodicidad.UNICA) {
+                    ModoProximoCiclo.ANCLADO_FECHA_INICIO
+                } else {
+                    it.modoProximoCiclo
+                },
             )
         }
     }
@@ -116,6 +123,10 @@ class NuevaTareaViewModel @Inject constructor(
 
     fun onClearHoraRecordatorio() {
         _uiState.update { it.copy(horaRecordatorio = null, saveError = null) }
+    }
+
+    fun onModoProximoCicloSelected(modo: ModoProximoCiclo) {
+        _uiState.update { it.copy(modoProximoCiclo = modo, saveError = null) }
     }
 
     fun onCrearNuevaCategoriaChange(enabled: Boolean) {
@@ -173,6 +184,11 @@ class NuevaTareaViewModel @Inject constructor(
                         notas = current.notas,
                         fechaInicio = current.fechaInicio,
                         horaRecordatorio = current.horaRecordatorio,
+                        modoProximoCiclo = if (current.periodicidad == Periodicidad.UNICA) {
+                            ModoProximoCiclo.ANCLADO_FECHA_INICIO
+                        } else {
+                            current.modoProximoCiclo
+                        },
                     ),
                 )
                 _finishEvent.emit(Unit)
